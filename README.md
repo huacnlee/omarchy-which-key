@@ -1,8 +1,8 @@
 # Omarchy Which Key
 
-A passive, theme-aware shortcut guide for Omarchy. Hold either Super key for
-200 ms and the shortcuts currently registered in Hyprland appear at the bottom
-right of the focused display.
+Omarchy Which Key brings LazyVim's which-key experience to the desktop. It
+automatically reads the active Omarchy and Hyprland keybindings and shows a
+compact guide at the bottom right of the focused display when you hold Super.
 
 <img width="250" alt="Omarchy Which-Key" src="preview.png" />
 

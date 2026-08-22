@@ -12,6 +12,7 @@ jq -e '
   and .keepLoaded == true
   and .entryPoints.overlay == "WhichKey.qml"
 ' manifest.json >/dev/null
+jq -e '.description == "A LazyVim which-key-style shortcut guide that automatically reads Omarchy live keybindings and appears when you hold Super"' manifest.json >/dev/null
 
 grep -Fq 'interval: 200' WhichKey.qml
 grep -Fq 'target: "huacnlee.which-key"' WhichKey.qml
@@ -38,6 +39,7 @@ grep -Fqi 'no built-in shortcut' README.md
 grep -Fq 'git clone https://github.com/huacnlee/omarchy-which-key.git' README.md
 grep -Fq 'alt="Omarchy Which-Key"' README.md
 grep -Fq 'src="preview.png"' README.md
+grep -Fq "Omarchy Which Key brings LazyVim's which-key experience to the desktop." README.md
 test -f preview.png
 grep -Fq './install.sh' README.md
 grep -Fq './uninstall.sh' README.md

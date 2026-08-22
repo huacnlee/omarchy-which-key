@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "author": "Jason Lee <huacnlee@gmail.com>",
   "license": "MIT",
-  "description": "Shows live Hyprland shortcuts when Super is held",
+  "description": "A LazyVim which-key-style shortcut guide that automatically reads Omarchy live keybindings and appears when you hold Super",
   "kinds": [
     "overlay"
   ],
