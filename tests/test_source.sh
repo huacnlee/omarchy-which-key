@@ -34,6 +34,14 @@ grep -Fq '"Disable"' widget.qml
 grep -Fq '"Repair"' widget.qml
 grep -Fq '"Enable"' widget.qml
 grep -Fq 'model: config.combinations' widget.qml
+grep -Fq 'delegate: Toggle {' widget.qml
+grep -Fq 'https://github.com/huacnlee/omarchy-which-key' widget.qml
+grep -Fq 'https://x.com/huacnlee' widget.qml
+grep -Fq 'Qt.openUrlExternally' widget.qml
+if grep -Eq '☑|☐' widget.qml; then
+  printf 'FAIL: settings choices must use native controls, not checkbox emoji\n' >&2
+  exit 1
+fi
 grep -Fq 'interval: config.delayMs' WhichKey.qml
 grep -Fq 'config.maskEnabled(modifierMask)' WhichKey.qml
 grep -Fq 'Color.popups.background' components/WhichKeyCard.qml

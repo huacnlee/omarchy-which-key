@@ -151,6 +151,65 @@ BarWidget {
                 font.pixelSize: Style.font.display
               }
             }
+            trailingControl: Component {
+              Item {
+                implicitWidth: menuButton.implicitWidth
+                implicitHeight: menuButton.implicitHeight
+
+                PanelActionButton {
+                  id: menuButton
+                  anchors.fill: parent
+                  iconText: "⋮"
+                  tooltipText: "Menu"
+                  foreground: root.foreground
+                  fontFamily: root.fontFamily
+                  focusable: true
+                  onClicked: linkMenu.opened ? linkMenu.close() : linkMenu.open()
+                }
+
+                Popup {
+                  id: linkMenu
+                  x: menuButton.width - width
+                  y: menuButton.height + Style.space(4)
+                  width: Style.space(190)
+                  padding: Style.space(6)
+                  modal: false
+                  focus: true
+                  closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+                  background: BorderSurface {
+                    color: Color.popups.background
+                    borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border,
+                                                   Math.max(1, Style.space(1)))
+                    radius: Style.cornerRadius
+                  }
+                  contentItem: Column {
+                    spacing: Style.space(2)
+
+                    Button {
+                      width: parent.width
+                      text: "GitHub"
+                      leftAlign: true
+                      foreground: Color.popups.text
+                      onClicked: {
+                        linkMenu.close()
+                        Qt.openUrlExternally("https://github.com/huacnlee/omarchy-which-key")
+                      }
+                    }
+
+                    Button {
+                      width: parent.width
+                      text: "Twitter"
+                      leftAlign: true
+                      foreground: Color.popups.text
+                      onClicked: {
+                        linkMenu.close()
+                        Qt.openUrlExternally("https://x.com/huacnlee")
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
 
           Button {
@@ -219,11 +278,11 @@ BarWidget {
 
             Repeater {
               model: config.combinations
-              delegate: Button {
+              delegate: Toggle {
                 required property var modelData
                 width: parent.width
-                leftAlign: true
-                text: (config.maskEnabled(modelData.mask) ? "☑  " : "☐  ") + modelData.label
+                label: modelData.label
+                checked: config.maskEnabled(modelData.mask)
                 foreground: root.foreground
                 onClicked: config.setMask(modelData.mask, !config.maskEnabled(modelData.mask))
               }
