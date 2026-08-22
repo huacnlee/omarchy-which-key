@@ -40,6 +40,10 @@ grep -Fq 'https://x.com/huacnlee' widget.qml
 grep -Fq 'Qt.openUrlExternally' widget.qml
 grep -Fq 'text: "Keybindings"' widget.qml
 grep -Fq 'Quickshell.execDetached(["omarchy-launch-config-editor", config.configHome + "/hypr/bindings.lua"])' widget.qml
+grep -Fq 'contentWidth: panel.fittedContentWidth(Style.space(360))' widget.qml
+grep -Fq 'id: integrationButton' widget.qml
+grep -Fq 'id: menuButton' widget.qml
+grep -Fq 'horizontalPadding: Style.space(8)' widget.qml
 if grep -Eq '☑|☐' widget.qml; then
   printf 'FAIL: settings choices must use native controls, not checkbox emoji\n' >&2
   exit 1

@@ -116,7 +116,7 @@ BarWidget {
     bar: root.bar
     open: root.opened
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(390))
+    contentWidth: panel.fittedContentWidth(Style.space(360))
     contentHeight: panel.fittedContentHeight(content.implicitHeight, Style.space(620))
 
     PanelKeyCatcher {
@@ -153,24 +153,42 @@ BarWidget {
             }
             trailingControl: Component {
               Item {
-                implicitWidth: menuButton.implicitWidth
-                implicitHeight: menuButton.implicitHeight
+                implicitWidth: headerActions.implicitWidth
+                implicitHeight: headerActions.implicitHeight
 
-                PanelActionButton {
-                  id: menuButton
-                  anchors.fill: parent
-                  iconText: "⋮"
-                  tooltipText: "Menu"
-                  foreground: root.foreground
-                  fontFamily: root.fontFamily
-                  focusable: true
-                  onClicked: linkMenu.opened ? linkMenu.close() : linkMenu.open()
+                Row {
+                  id: headerActions
+                  spacing: Style.space(6)
+
+                  Button {
+                    id: integrationButton
+                    text: root.actionBusy ? (root.integrationState === "enabled" ? "Disabling…" : "Enabling…")
+                      : (root.integrationState === "enabled" ? "Disable"
+                        : (root.integrationState === "repair" ? "Repair" : "Enable"))
+                    foreground: root.foreground
+                    bordered: true
+                    enabled: !root.actionBusy
+                    fontSize: Style.font.bodySmall
+                    horizontalPadding: Style.space(8)
+                    verticalPadding: Style.space(4)
+                    onClicked: root.runIntegrationAction()
+                  }
+
+                  PanelActionButton {
+                    id: menuButton
+                    iconText: "⋮"
+                    tooltipText: "Menu"
+                    foreground: root.foreground
+                    fontFamily: root.fontFamily
+                    focusable: true
+                    onClicked: linkMenu.opened ? linkMenu.close() : linkMenu.open()
+                  }
                 }
 
                 Popup {
                   id: linkMenu
-                  x: menuButton.width - width
-                  y: menuButton.height + Style.space(4)
+                  x: parent.width - width
+                  y: parent.height + Style.space(4)
                   width: Style.space(190)
                   padding: Style.space(6)
                   modal: false
@@ -221,17 +239,6 @@ BarWidget {
                 }
               }
             }
-          }
-
-          Button {
-            width: parent.width
-            text: root.actionBusy ? (root.integrationState === "enabled" ? "Disabling…" : "Enabling…")
-              : (root.integrationState === "enabled" ? "Disable"
-                : (root.integrationState === "repair" ? "Repair" : "Enable"))
-            foreground: root.foreground
-            bordered: true
-            enabled: !root.actionBusy
-            onClicked: root.runIntegrationAction()
           }
 
           Text {
