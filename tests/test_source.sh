@@ -37,7 +37,8 @@ done
 grep -Fqi 'no built-in shortcut' README.md
 grep -Fq 'git clone https://github.com/huacnlee/omarchy-which-key.git' README.md
 grep -Fq 'alt="Omarchy Which-Key"' README.md
-grep -Fq '48e77908-2df5-426b-b5aa-c241f240d077' README.md
+grep -Fq 'src="preview.png"' README.md
+test -f preview.png
 grep -Fq './install.sh' README.md
 grep -Fq './uninstall.sh' README.md
 grep -Fq 'omarchy plugin update huacnlee.which-key --yes' README.md

@@ -4,7 +4,7 @@ A passive, theme-aware shortcut guide for Omarchy. Hold either Super key for
 200 ms and the shortcuts currently registered in Hyprland appear at the bottom
 right of the focused display.
 
-<img width="250" alt="Omarchy Which-Key" src="https://github.com/user-attachments/assets/48e77908-2df5-426b-b5aa-c241f240d077" />
+<img width="250" alt="Omarchy Which-Key" src="preview.png" />
 
 ## Requirements
 
