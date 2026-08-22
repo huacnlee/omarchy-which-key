@@ -12,7 +12,7 @@ jq -e '
   and .keepLoaded == true
   and .entryPoints.overlay == "WhichKey.qml"
 ' manifest.json >/dev/null
-jq -e '.kinds == ["overlay", "bar-widget"] and .entryPoints.barWidget == "WhichKeyWidget.qml" and .barWidget.defaultSection == "right"' manifest.json >/dev/null
+jq -e '.kinds == ["overlay", "bar-widget"] and .entryPoints.barWidget == "widget.qml" and .barWidget.defaultSection == "right"' manifest.json >/dev/null
 jq -e '.description == "A LazyVim which-key-style shortcut guide that automatically reads Omarchy live keybindings and appears when you hold Super"' manifest.json >/dev/null
 
 grep -Fq 'interval: config.delayMs' WhichKey.qml
@@ -24,16 +24,16 @@ grep -Fq 'mask: Region {}' WhichKey.qml
 grep -Fq 'screenName === root.focusedScreenName' WhichKey.qml
 
 test -f components/WhichKeyCard.qml
-test -f WhichKeyWidget.qml
+test -f widget.qml
 test -f WhichKeyConfig.qml
 for script in integration-status enable-integration disable-integration; do
   test -x "scripts/$script"
 done
-grep -Fq 'BarWidget {' WhichKeyWidget.qml
-grep -Fq '"Disable"' WhichKeyWidget.qml
-grep -Fq '"Repair"' WhichKeyWidget.qml
-grep -Fq '"Enable"' WhichKeyWidget.qml
-grep -Fq 'model: config.combinations' WhichKeyWidget.qml
+grep -Fq 'BarWidget {' widget.qml
+grep -Fq '"Disable"' widget.qml
+grep -Fq '"Repair"' widget.qml
+grep -Fq '"Enable"' widget.qml
+grep -Fq 'model: config.combinations' widget.qml
 grep -Fq 'interval: config.delayMs' WhichKey.qml
 grep -Fq 'config.maskEnabled(modifierMask)' WhichKey.qml
 grep -Fq 'Color.popups.background' components/WhichKeyCard.qml
