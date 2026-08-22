@@ -92,9 +92,11 @@ grep -Fq 'Style.cornerRadius' components/WhichKeyCard.qml
 grep -Fq 'modelData.description' components/WhichKeyCard.qml
 grep -Fq 'modelData.label' components/WhichKeyCard.qml
 
-for file in README.md LICENSE Makefile install.sh uninstall.sh; do
+for file in README.md LICENSE Makefile; do
   test -f "$file"
 done
+test ! -e install.sh
+test ! -e uninstall.sh
 for heading in Requirements Install 'How it works' Usage Uninstall Troubleshooting; do
   grep -Fq "## $heading" README.md
 done
