@@ -126,8 +126,6 @@ function buildRows(bindings, modifierMask, options) {
     })
   }
 
-  rows.sort(compareRows)
-
   var counts = {}
   for (var countIndex = 0; countIndex < rows.length; countIndex++) {
     var identity = rows[countIndex].key.toUpperCase()
