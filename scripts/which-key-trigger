@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -euo pipefail
+
+if [[ $# -ne 2 ]]; then
+  printf 'usage: which-key-trigger <press|release|modifiers> <value>\n' >&2
+  exit 64
+fi
+
+event="$1"
+value="$2"
+
+case "$event" in
+  press|release)
+    case "$value" in
+      super_l|super_r) ;;
+      *)
+        printf 'which-key-trigger: invalid Super key: %s\n' "$value" >&2
+        exit 64
+        ;;
+    esac
+    ;;
+  modifiers)
+    if [[ ! "$value" =~ ^[0-9]+$ ]]; then
+      printf 'which-key-trigger: modifier mask must be an integer\n' >&2
+      exit 64
+    fi
+    ;;
+  *)
+    printf 'which-key-trigger: unknown event: %s\n' "$event" >&2
+    exit 64
+    ;;
+esac
+
+shell_command="${OMARCHY_WHICH_KEY_SHELL:-omarchy-shell}"
+exec "$shell_command" omarchy.which-key "$event" "$value"

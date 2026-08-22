@@ -1,0 +1,46 @@
+#!/bin/bash
+
+set -euo pipefail
+
+begin_marker='-- omarchy-which-key:begin'
+end_marker='-- omarchy-which-key:end'
+config="${OMARCHY_WHICH_KEY_HYPR_CONFIG:-${HOME}/.config/hypr/bindings.lua}"
+config_dir="$(dirname "$config")"
+
+mkdir -p "$config_dir"
+if [[ ! -e "$config" ]]; then
+  : >"$config"
+fi
+
+if ! grep -Fqx -- "$begin_marker" "$config"; then
+  backup="${config}.bak.$(date +%s%N)"
+  cp -p -- "$config" "$backup"
+fi
+
+temporary="$(mktemp "${config}.tmp.XXXXXX")"
+cleanup() {
+  rm -f -- "$temporary"
+}
+trap cleanup EXIT
+
+awk -v begin="$begin_marker" -v end="$end_marker" '
+  $0 == begin { in_owned_block = 1; next }
+  in_owned_block && $0 == end { in_owned_block = 0; next }
+  !in_owned_block { print }
+  END {
+    if (in_owned_block) exit 65
+  }
+' "$config" >"$temporary"
+
+{
+  printf '%s\n' "$begin_marker"
+  printf '%s\n' 'hl.bind("Super_L", hl.dsp.exec_cmd("which-key-trigger press super_l"), { pass = true })'
+  printf '%s\n' 'hl.bind("Super_L", hl.dsp.exec_cmd("which-key-trigger release super_l"), { pass = true, release = true })'
+  printf '%s\n' 'hl.bind("Super_R", hl.dsp.exec_cmd("which-key-trigger press super_r"), { pass = true })'
+  printf '%s\n' 'hl.bind("Super_R", hl.dsp.exec_cmd("which-key-trigger release super_r"), { pass = true, release = true })'
+  printf '%s\n' "$end_marker"
+} >>"$temporary"
+
+chmod --reference="$config" "$temporary"
+mv -f -- "$temporary" "$config"
+trap - EXIT

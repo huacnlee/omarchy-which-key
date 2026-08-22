@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -euo pipefail
+
+begin_marker='-- omarchy-which-key:begin'
+end_marker='-- omarchy-which-key:end'
+config="${OMARCHY_WHICH_KEY_HYPR_CONFIG:-${HOME}/.config/hypr/bindings.lua}"
+
+if [[ ! -e "$config" ]] || ! grep -Fqx -- "$begin_marker" "$config"; then
+  exit 0
+fi
+
+temporary="$(mktemp "${config}.tmp.XXXXXX")"
+cleanup() {
+  rm -f -- "$temporary"
+}
+trap cleanup EXIT
+
+awk -v begin="$begin_marker" -v end="$end_marker" '
+  $0 == begin { in_owned_block = 1; next }
+  in_owned_block && $0 == end { in_owned_block = 0; next }
+  !in_owned_block { print }
+  END {
+    if (in_owned_block) exit 65
+  }
+' "$config" >"$temporary"
+
+chmod --reference="$config" "$temporary"
+mv -f -- "$temporary" "$config"
+trap - EXIT
