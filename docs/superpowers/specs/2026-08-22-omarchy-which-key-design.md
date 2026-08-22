@@ -91,17 +91,19 @@ for trigger events. The plugin ID is `omarchy.which-key`.
 ### Trigger bridge
 
 Installation adds a clearly marked, minimal block to the user's
-`~/.config/hypr/bindings.lua`. It observes press and release for `Super_L` and
-`Super_R`, plus modifier-state changes while Super is held. These hooks notify
-the loaded plugin through `omarchy-shell` IPC. They do not bind action keys,
-execute the user's shortcuts, or carry displayed shortcut metadata.
+`~/.config/hypr/bindings.lua`. It subscribes to Hyprland 0.56's native
+`input.keyboard.key` Lua event and observes press/release for both Super keys
+plus modifier-state changes while Super is held. XKB modifier keycodes are
+resolved from the active compiled keymap at installation time rather than
+assumed. The observer notifies the loaded plugin through `omarchy-shell` IPC.
+It creates no key bindings, executes none of the user's shortcuts, and carries
+no displayed shortcut metadata.
 
-The trigger bridge must be proven not to consume ordinary `Super+key`
-bindings on the installed Hyprland version before the rest of the integration
-is considered complete. If a bare-modifier Hyprland hook cannot satisfy that
-invariant, the implementation must stop and use a compositor-supported global
-shortcut mechanism. It must not fall back to `/dev/input`, root access, or
-exclusive keyboard focus without a separately approved design change.
+The trigger bridge must be proven not to change ordinary `Super+key` bindings
+on the installed Hyprland version before the integration is considered
+complete. It must not fall back to a synthetic key binding, `/dev/input`, root
+access, or exclusive keyboard focus without a separately approved design
+change.
 
 The installer backs up the target file before editing it. The inserted block
 has stable begin/end markers. Reinstall updates that block idempotently;

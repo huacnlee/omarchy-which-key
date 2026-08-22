@@ -9,6 +9,7 @@ trap 'rm -rf "$test_root"' EXIT
 config="$test_root/bindings.lua"
 shell_log="$test_root/shell.log"
 fake_shell="$test_root/omarchy-shell"
+fake_xkbcli="$test_root/xkbcli"
 
 assert_equal() {
   local expected="$1" actual="$2" message="$3"
@@ -39,6 +40,25 @@ printf '%s\n' "$*" >>"$OMARCHY_WHICH_KEY_TEST_LOG"
 SH
 chmod +x "$fake_shell"
 
+cat >"$fake_xkbcli" <<'SH'
+#!/bin/bash
+test "${1:-}" = compile-keymap
+cat <<'KEYMAP'
+xkb_keycodes "evdev" {
+  <LFSH> = 50;
+  <RTSH> = 62;
+  <LCTL> = 37;
+  <RCTL> = 105;
+  <LALT> = 64;
+  <RALT> = 108;
+  <LWIN> = 133;
+  <RWIN> = 134;
+};
+KEYMAP
+SH
+chmod +x "$fake_xkbcli"
+
+OMARCHY_WHICH_KEY_XKBCLI="$fake_xkbcli" \
 OMARCHY_WHICH_KEY_HYPR_CONFIG="$config" "$repo_root/scripts/install-bindings"
 
 assert_equal "1" "$(grep -c '^-- omarchy-which-key:begin$' "$config")" \
@@ -47,21 +67,28 @@ assert_equal "1" "$(find "$test_root" -maxdepth 1 -name 'bindings.lua.bak.*' | w
   "first install should create one backup"
 assert_equal "640" "$(stat -c '%a' "$config")" \
   "installer should preserve config mode"
-assert_file_contains "$config" 'which-key-trigger press super_l' \
-  "left Super press should be observed"
-assert_file_contains "$config" 'which-key-trigger release super_l' \
-  "left Super release should be observed"
-assert_file_contains "$config" 'which-key-trigger press super_r' \
-  "right Super press should be observed"
-assert_file_contains "$config" 'which-key-trigger release super_r' \
-  "right Super release should be observed"
-assert_file_contains "$config" '{ pass = true }' \
-  "press hook should pass through to Hyprland"
-assert_file_contains "$config" '{ pass = true, release = true }' \
-  "release hook should pass through to Hyprland"
+assert_file_contains "$config" 'hl.on("input.keyboard.key"' \
+  "installer should observe native keyboard events"
+assert_file_contains "$config" '[133] = { name = "super_l", bit = 64 }' \
+  "left Super should use the detected XKB keycode"
+assert_file_contains "$config" '[134] = { name = "super_r", bit = 64 }' \
+  "right Super should use the detected XKB keycode"
+assert_file_contains "$config" '[50] = { name = "shift_l", bit = 1 }' \
+  "left Shift should update the modifier mask"
+assert_file_contains "$config" '[37] = { name = "ctrl_l", bit = 4 }' \
+  "left Ctrl should update the modifier mask"
+assert_file_contains "$config" '[64] = { name = "alt_l", bit = 8 }' \
+  "left Alt should update the modifier mask"
+if grep -Fq 'hl.bind(' "$config"; then
+  printf 'FAIL: observer must not install a key binding\n' >&2
+  exit 1
+fi
 assert_file_contains "$config" "$original_contents" \
   "installer should preserve surrounding user config"
+OMARCHY_TEST_CONFIG="$config" \
+  lua -e 'assert(loadfile(os.getenv("OMARCHY_TEST_CONFIG")))'
 
+OMARCHY_WHICH_KEY_XKBCLI="$fake_xkbcli" \
 OMARCHY_WHICH_KEY_HYPR_CONFIG="$config" "$repo_root/scripts/install-bindings"
 
 assert_equal "1" "$(grep -c '^-- omarchy-which-key:begin$' "$config")" \

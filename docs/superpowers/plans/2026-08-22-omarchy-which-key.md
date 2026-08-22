@@ -4,7 +4,7 @@
 
 **Goal:** Build an Omarchy 4 overlay that shows the currently active, described Hyprland `Super` bindings in a LazyVim-style bottom-right card after Super is held for 200 ms.
 
-**Architecture:** A minimal Hyprland Lua hook sends modifier press/release events to a keep-loaded, non-focusable Quickshell overlay. A short-lived parser reads `hyprctl binds` on every Super press, while a pure JavaScript model validates and filters the live result for the held modifier mask; QML owns only timing, placement, and themed presentation.
+**Architecture:** A minimal Hyprland Lua `input.keyboard.key` observer sends modifier press/release events to a keep-loaded, non-focusable Quickshell overlay. A short-lived parser reads `hyprctl binds` on every Super press, while a pure JavaScript model validates and filters the live result for the held modifier mask; QML owns only timing, placement, and themed presentation.
 
 **Tech Stack:** Omarchy 4 plugin manifest, Quickshell/QML, JavaScript, Bash, Hyprland 0.56 Lua bindings, Node.js test runner, `jq`, `make`.
 
@@ -77,16 +77,11 @@ Expected: FAIL because lifecycle scripts do not exist.
 
 - [ ] **Step 3: Implement minimal marked-block lifecycle**
 
-The installed Lua uses `hl.bind` with an empty description and pass-through-compatible press/release options supported by Hyprland 0.56. Both physical Super keys call the narrow trigger client. The shell scripts resolve explicit paths, use `mktemp`, preserve file mode, and replace only the marked block.
+The installed Lua uses `hl.on("input.keyboard.key", ...)`, with modifier keycodes read from `xkbcli compile-keymap` during installation. Both physical Super keys call the narrow trigger client, while Shift/Ctrl/Alt update its live modifier mask. The shell scripts resolve explicit paths, use `mktemp`, preserve file mode, and replace only the marked block.
 
-```lua
--- omarchy-which-key:begin
-hl.bind("Super_L", hl.dsp.exec_cmd("which-key-trigger press super_l"), { pass = true })
-hl.bind("Super_L", hl.dsp.exec_cmd("which-key-trigger release super_l"), { pass = true, release = true })
-hl.bind("Super_R", hl.dsp.exec_cmd("which-key-trigger press super_r"), { pass = true })
-hl.bind("Super_R", hl.dsp.exec_cmd("which-key-trigger release super_r"), { pass = true, release = true })
--- omarchy-which-key:end
-```
+The marked block contains one native event subscription and no `hl.bind(...)`
+calls. Its callback ignores every keycode outside the eight detected physical
+modifier keys.
 
 `which-key-trigger` maps arguments to:
 
@@ -102,7 +97,7 @@ Expected: PASS. Also run `lua -e 'assert(loadfile(arg[1]))' "$fixture_config"` i
 
 - [ ] **Step 5: Perform the live safety gate**
 
-Install the hook into the development config, run `hyprctl reload`, confirm `hyprctl configerrors` is empty, and compare representative `Super+1`, `Super+Shift+1`, `Super+W`, and one repeating/release binding with the pre-install baseline. If any binding is consumed or duplicated, stop this plan and revise the approved design; do not continue with evdev or exclusive focus.
+Install the observer into the development config, run `hyprctl reload`, confirm `hyprctl configerrors` is empty, and compare representative `Super+1`, `Super+Shift+1`, `Super+W`, and one repeating/release binding with the pre-install baseline. If any binding changes, stop this plan and revise the approved design; do not continue with synthetic binds, evdev, or exclusive focus.
 
 - [ ] **Step 6: Commit**
 
