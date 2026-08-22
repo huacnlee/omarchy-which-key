@@ -49,6 +49,8 @@ grep -Fq 'checked: root.integrationState === "enabled"' widget.qml
 grep -Fq 'id: menuButton' widget.qml
 grep -Fq 'implicitWidth: Style.space(24)' widget.qml
 grep -Fq 'implicitHeight: Style.space(24)' widget.qml
+test "$(grep -Fc 'anchors.verticalCenter: parent.verticalCenter' widget.qml)" -ge 3
+grep -Fq 'cursorRing: false' widget.qml
 grep -Fq 'text: "⋮"' widget.qml
 grep -Fq 'anchors.fill: parent' widget.qml
 grep -Fq 'selected: linkMenu.opened' widget.qml

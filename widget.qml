@@ -176,6 +176,7 @@ BarWidget {
                     busy: root.actionBusy
                     foreground: root.foreground
                     accent: Color.accent
+                    cursorRing: false
                     trackHeight: Style.space(18)
                     onToggled: root.runIntegrationAction()
                   }
@@ -195,6 +196,7 @@ BarWidget {
                   Item {
                     implicitWidth: Style.space(24)
                     implicitHeight: Style.space(24)
+                    anchors.verticalCenter: parent.verticalCenter
 
                     Button {
                       id: menuButton
