@@ -86,7 +86,7 @@ reveal is due.
 
 `manifest.json` declares the overlay. `WhichKey.qml` composes the state,
 loader, positioner, and presentation components and exposes narrow IPC methods
-for trigger events. The plugin ID is `omarchy.which-key`.
+for trigger events. The plugin ID is `huacnlee.which-key`.
 
 ### Trigger bridge
 

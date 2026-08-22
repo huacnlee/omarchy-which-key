@@ -33,4 +33,4 @@ case "$event" in
 esac
 
 shell_command="${OMARCHY_WHICH_KEY_SHELL:-omarchy-shell}"
-exec "$shell_command" omarchy.which-key "$event" "$value"
+exec "$shell_command" huacnlee.which-key "$event" "$value"

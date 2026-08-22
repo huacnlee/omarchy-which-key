@@ -106,7 +106,7 @@ OMARCHY_WHICH_KEY_SHELL="$fake_shell" \
 OMARCHY_WHICH_KEY_TEST_LOG="$shell_log" \
   "$repo_root/scripts/which-key-trigger" release super_l
 
-assert_equal $'omarchy.which-key press super_l\nomarchy.which-key modifiers 65\nomarchy.which-key release super_l' \
+assert_equal $'huacnlee.which-key press super_l\nhuacnlee.which-key modifiers 65\nhuacnlee.which-key release super_l' \
   "$(<"$shell_log")" "trigger should forward exact IPC arguments"
 
 if OMARCHY_WHICH_KEY_SHELL="$fake_shell" \

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "huacnlee.which-key",
+  "name": "Which Key",
+  "version": "0.1.0",
+  "author": "Jason Lee <huacnlee@gmail.com>",
+  "license": "MIT",
+  "description": "Shows live Hyprland shortcuts when Super is held",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "WhichKey.qml"
+  }
+}

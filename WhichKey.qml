@@ -1,0 +1,222 @@
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import Quickshell.Wayland
+import Quickshell.Hyprland
+import qs.Commons
+import qs.Ui
+import "components"
+import "WhichKeyModel.js" as Model
+
+Item {
+  id: root
+
+  property var shell: null
+  property var manifest: null
+
+  property bool opened: false
+  property int generation: 0
+  property int modifierMask: 0
+  property var bindings: []
+  property var viewModel: ({ title: "NONE", rows: [], columns: [] })
+  property var heldSuperKeys: ({})
+  property bool bindingsReady: false
+  property bool revealDue: false
+  property int pendingLoadGeneration: 0
+
+  readonly property string sourceDir: manifest && manifest.__sourceDir
+    ? String(manifest.__sourceDir) : ""
+  readonly property bool superHeld: heldSuperKeys.super_l === true
+    || heldSuperKeys.super_r === true
+  readonly property string focusedScreenName: Hyprland.focusedMonitor
+    ? String(Hyprland.focusedMonitor.name) : ""
+
+  function close() {
+    opened = false
+  }
+
+  function copyHeldKeys() {
+    var copy = {}
+    for (var key in heldSuperKeys) copy[key] = heldSuperKeys[key]
+    return copy
+  }
+
+  function pressSuper(key) {
+    var name = String(key || "")
+    if ((name !== "super_l" && name !== "super_r") || heldSuperKeys[name] === true)
+      return
+
+    var wasHeld = superHeld
+    var next = copyHeldKeys()
+    next[name] = true
+    heldSuperKeys = next
+    modifierMask = modifierMask | 64
+
+    if (wasHeld) return
+
+    generation += 1
+    opened = false
+    bindingsReady = false
+    revealDue = false
+    bindings = []
+    rebuildModel()
+    revealTimer.restart()
+    requestBindings(generation)
+  }
+
+  function releaseSuper(key) {
+    var name = String(key || "")
+    if (heldSuperKeys[name] !== true) return
+
+    var next = copyHeldKeys()
+    delete next[name]
+    heldSuperKeys = next
+    if (superHeld) return
+
+    generation += 1
+    modifierMask = modifierMask & ~64
+    revealTimer.stop()
+    revealDue = false
+    bindingsReady = false
+    pendingLoadGeneration = 0
+    if (bindingProcess.running) bindingProcess.running = false
+    close()
+  }
+
+  function setModifiers(mask) {
+    var numericMask = Number(mask)
+    if (!isFinite(numericMask) || numericMask < 0) return
+    modifierMask = Math.floor(numericMask)
+    rebuildModel()
+    maybeReveal()
+  }
+
+  function rebuildModel() {
+    viewModel = Model.buildRows(bindings, modifierMask)
+  }
+
+  function maybeReveal() {
+    opened = revealDue && superHeld && bindingsReady
+      && viewModel && viewModel.rows && viewModel.rows.length > 0
+  }
+
+  function requestBindings(requestGeneration) {
+    if (!sourceDir) {
+      console.warn("huacnlee.which-key: plugin source directory is unavailable")
+      return
+    }
+
+    if (bindingProcess.running) {
+      pendingLoadGeneration = requestGeneration
+      bindingProcess.running = false
+      return
+    }
+    startBindingLoad(requestGeneration)
+  }
+
+  function startBindingLoad(requestGeneration) {
+    bindingProcess.loadGeneration = requestGeneration
+    bindingProcess.command = [sourceDir + "/scripts/which-key-bindings"]
+    bindingProcess.running = true
+  }
+
+  function acceptBindingOutput(requestGeneration, output) {
+    if (!Model.isCurrentGeneration(generation, requestGeneration) || !superHeld)
+      return
+
+    var parsed
+    try {
+      parsed = JSON.parse(String(output || ""))
+    } catch (error) {
+      console.warn("huacnlee.which-key: invalid binding data:", error)
+      return
+    }
+    if (!Array.isArray(parsed)) return
+
+    bindings = parsed
+    bindingsReady = true
+    rebuildModel()
+    maybeReveal()
+  }
+
+  Timer {
+    id: revealTimer
+    interval: 200
+    repeat: false
+    onTriggered: {
+      root.revealDue = true
+      root.maybeReveal()
+    }
+  }
+
+  Process {
+    id: bindingProcess
+    property int loadGeneration: 0
+    command: []
+    running: false
+    stdout: StdioCollector { id: bindingStdout; waitForEnd: true }
+    stderr: StdioCollector { id: bindingStderr; waitForEnd: true }
+
+    onExited: function(exitCode, exitStatus) {
+      var completedGeneration = loadGeneration
+      var nextGeneration = root.pendingLoadGeneration
+      root.pendingLoadGeneration = 0
+
+      if (exitCode === 0)
+        root.acceptBindingOutput(completedGeneration, bindingStdout.text)
+      else if (Model.isCurrentGeneration(root.generation, completedGeneration)
+          && root.superHeld && nextGeneration === 0)
+        console.warn("huacnlee.which-key: binding load failed:", bindingStderr.text)
+
+      if (nextGeneration !== 0)
+        Qt.callLater(function() { root.startBindingLoad(nextGeneration) })
+    }
+  }
+
+  IpcHandler {
+    target: "huacnlee.which-key"
+
+    function press(key: string): void {
+      root.pressSuper(key)
+    }
+
+    function release(key: string): void {
+      root.releaseSuper(key)
+    }
+
+    function modifiers(mask: int): void {
+      root.setModifiers(mask)
+    }
+  }
+
+  Variants {
+    model: Quickshell.screens
+
+    PanelWindow {
+      id: overlay
+      required property var modelData
+      readonly property string screenName: modelData ? String(modelData.name) : ""
+
+      screen: modelData
+      visible: root.opened && screenName === root.focusedScreenName
+      anchors { top: true; right: true; bottom: true; left: true }
+      color: "transparent"
+      exclusionMode: ExclusionMode.Ignore
+      WlrLayershell.namespace: "huacnlee-which-key"
+      WlrLayershell.layer: WlrLayer.Overlay
+      WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+
+      // The guide is visual only. An empty input region guarantees that the
+      // held modifier and the next shortcut continue to reach the active app.
+      mask: Region {}
+
+      WhichKeyCard {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: Style.gapsOut
+        anchors.bottomMargin: Style.gapsOut
+        viewModel: root.viewModel
+      }
+    }
+  }
+}

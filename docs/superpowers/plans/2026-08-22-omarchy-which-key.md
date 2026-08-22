@@ -16,7 +16,7 @@
 - The visible surface uses `WlrKeyboardFocus.None`, `ExclusionMode.Ignore`, and an empty input region.
 - Existing Hyprland bindings remain compositor-owned and behave exactly as before installation.
 - Reveal delay is exactly 200 ms.
-- The plugin ID is `omarchy.which-key` and the manifest uses `kind: overlay` with `keepLoaded: true`.
+- The plugin ID is `huacnlee.which-key` and the manifest uses `kind: overlay` with `keepLoaded: true`.
 - Colors, spacing, typography, radius, and shadow come from Omarchy semantic theme tokens.
 - Work in the current checkout; do not create a worktree.
 
@@ -86,7 +86,7 @@ modifier keys.
 `which-key-trigger` maps arguments to:
 
 ```bash
-exec omarchy-shell omarchy.which-key "$event" "$value"
+exec omarchy-shell huacnlee.which-key "$event" "$value"
 ```
 
 - [ ] **Step 4: Run installer tests and static Lua checks**
@@ -242,7 +242,7 @@ git commit -m "Add live binding presentation model"
 - Create: `tests/test_source.sh`
 
 **Interfaces:**
-- Consumes IPC methods `press(key: string)`, `release(key: string)`, and `modifiers(mask: int)` on target `omarchy.which-key`.
+- Consumes IPC methods `press(key: string)`, `release(key: string)`, and `modifiers(mask: int)` on target `huacnlee.which-key`.
 - Produces properties `opened`, `generation`, `modifierMask`, `bindings`, and one `OutputAnchor` per screen.
 
 - [ ] **Step 1: Write failing manifest/state source tests**
@@ -250,7 +250,7 @@ git commit -m "Add live binding presentation model"
 Assert schema version, overlay entry point, keep-loaded status, 200 ms timer, generation guards, live parser invocation, direct IPC methods, `WlrKeyboardFocus.None`, and absence of `Exclusive`, `OnDemand`, hard-coded shortcut descriptions, and command dispatch from binding data.
 
 ```bash
-jq -e '.id == "omarchy.which-key" and .keepLoaded == true and .entryPoints.overlay == "WhichKey.qml"' manifest.json
+jq -e '.id == "huacnlee.which-key" and .keepLoaded == true and .entryPoints.overlay == "WhichKey.qml"' manifest.json
 rg -q 'interval: 200' WhichKey.qml
 ! rg -q 'WlrKeyboardFocus\.(Exclusive|OnDemand)' WhichKey.qml components
 ```
@@ -267,7 +267,7 @@ Use `Process` to start `scripts/which-key-bindings` at press time, increment `ge
 
 ```qml
 IpcHandler {
-  target: "omarchy.which-key"
+  target: "huacnlee.which-key"
   function press(key: string): void { root.pressSuper(key) }
   function release(key: string): void { root.releaseSuper(key) }
   function modifiers(mask: int): void { root.setModifiers(mask) }
@@ -354,7 +354,7 @@ git commit -m "Render themed which-key popover"
 
 - [ ] **Step 1: Add failing lifecycle and documentation assertions**
 
-Test a temporary config root so install copies the repository to an Omarchy plugin directory, installs the marked hook, enables `omarchy.which-key`, and uninstall removes only owned state. Assert README documents requirements, live-data behavior, install, uninstall, troubleshooting, and the explicit absence of built-in shortcut data.
+Test a temporary config root so install copies the repository to an Omarchy plugin directory, installs the marked hook, enables `huacnlee.which-key`, and uninstall removes only owned state. Assert README documents requirements, live-data behavior, install, uninstall, troubleshooting, and the explicit absence of built-in shortcut data.
 
 - [ ] **Step 2: Run full tests and verify RED**
 
@@ -380,7 +380,7 @@ Expected: all commands exit 0.
 
 - [ ] **Step 5: Install into the live Omarchy session**
 
-Run: `./install.sh`, then verify `omarchy plugin list --json` reports `omarchy.which-key` enabled and `hyprctl configerrors` is empty.
+Run: `./install.sh`, then verify `omarchy plugin list --json` reports `huacnlee.which-key` enabled and `hyprctl configerrors` is empty.
 
 - [ ] **Step 6: Complete live acceptance**
 
