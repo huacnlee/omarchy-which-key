@@ -26,6 +26,9 @@ grep -Fq 'screenName === root.focusedScreenName' WhichKey.qml
 test -f components/WhichKeyCard.qml
 test -f components/WhichKeyMenu.qml
 test -f components/CompactSettingToggle.qml
+grep -Fq 'PanelSeparator {' components/MenuSeparator.qml
+grep -Fq 'foreground: Color.menu.text' components/MenuSeparator.qml
+grep -Fq 'strength: 0.12' components/MenuSeparator.qml
 test -f widget.qml
 test -f WhichKeyConfig.qml
 for script in integration-status enable-integration disable-integration; do

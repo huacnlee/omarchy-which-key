@@ -1,7 +1,8 @@
 import QtQuick
 import qs.Commons
+import qs.Ui
 
-Rectangle {
-  implicitHeight: Math.max(1, Style.space(1))
-  color: Color.menu.border
+PanelSeparator {
+  foreground: Color.menu.text
+  strength: 0.12
 }
