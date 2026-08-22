@@ -41,7 +41,12 @@ grep -Fq 'viewModel.rows.slice(0, 10)' components/WhichKeyCard.qml
 grep -Fq 'readonly property int pad: Style.space(10)' components/WhichKeyCard.qml
 grep -Fq 'readonly property int rowGap: Style.space(4)' components/WhichKeyCard.qml
 grep -Fq 'availableWidth, Style.space(300)' components/WhichKeyCard.qml
-test "$(grep -Fc 'color: Color.muted' components/WhichKeyCard.qml)" -eq 2
+grep -Fq 'color: Color.primary' components/WhichKeyCard.qml
+test "$(grep -Fc 'color: Color.muted' components/WhichKeyCard.qml)" -eq 1
+if grep -Eq '#[0-9A-Fa-f]{3,8}|Qt\.rgba?\(|color:[[:space:]]*"[^"]+"' components/WhichKeyCard.qml; then
+  printf 'FAIL: visible card colors must use Omarchy system color tokens\n' >&2
+  exit 1
+fi
 grep -Fq 'scripts/which-key-bindings' WhichKey.qml
 grep -Fq 'loadGeneration' WhichKey.qml
 grep -Fq 'Model.isCurrentGeneration' WhichKey.qml

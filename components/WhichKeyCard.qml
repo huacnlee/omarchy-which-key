@@ -59,7 +59,7 @@ BorderSurface {
           Text {
             Layout.preferredWidth: card.keyWidth
             text: modelData.label
-            color: Color.muted
+            color: Color.primary
             font.family: Style.font.family
             font.pixelSize: Style.font.body
             font.bold: true
