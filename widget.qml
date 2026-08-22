@@ -187,6 +187,17 @@ BarWidget {
 
                     Button {
                       width: parent.width
+                      text: "Keybindings"
+                      leftAlign: true
+                      foreground: Color.popups.text
+                      onClicked: {
+                        linkMenu.close()
+                        Quickshell.execDetached(["omarchy-launch-config-editor", config.configHome + "/hypr/bindings.lua"])
+                      }
+                    }
+
+                    Button {
+                      width: parent.width
                       text: "GitHub"
                       leftAlign: true
                       foreground: Color.popups.text

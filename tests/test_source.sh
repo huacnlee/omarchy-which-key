@@ -38,6 +38,8 @@ grep -Fq 'delegate: Toggle {' widget.qml
 grep -Fq 'https://github.com/huacnlee/omarchy-which-key' widget.qml
 grep -Fq 'https://x.com/huacnlee' widget.qml
 grep -Fq 'Qt.openUrlExternally' widget.qml
+grep -Fq 'text: "Keybindings"' widget.qml
+grep -Fq 'Quickshell.execDetached(["omarchy-launch-config-editor", config.configHome + "/hypr/bindings.lua"])' widget.qml
 if grep -Eq '☑|☐' widget.qml; then
   printf 'FAIL: settings choices must use native controls, not checkbox emoji\n' >&2
   exit 1
