@@ -103,6 +103,8 @@ assert_equal "640" "$(stat -c '%a' "$config")" \
   "installer should preserve config mode"
 assert_file_contains "$config" 'hl.on("input.keyboard.key"' \
   "installer should observe native keyboard events"
+assert_file_contains "$config" 'which-key-trigger state " .. tostring(time)' \
+  "observer should preserve compositor event order"
 assert_file_contains "$config" '[64] = { name = "super_1", bit = 64 }' \
   "Super should follow the active XKB modifier map"
 assert_file_contains "$config" '[108] = { name = "super_2", bit = 64 }' \
