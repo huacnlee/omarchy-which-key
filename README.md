@@ -13,18 +13,20 @@ Omarchy 4 with its Quickshell desktop, Hyprland Lua configuration support,
 
 ## Install
 
-Clone the repository and run the installer:
+Add and enable the plugin with Omarchy, then run its one-time system integration
+setup:
 
 ```bash
-git clone https://github.com/huacnlee/omarchy-which-key.git
-cd omarchy-which-key
-./install.sh
+omarchy plugin add https://github.com/huacnlee/omarchy-which-key.git --enable
+~/.config/omarchy/plugins/huacnlee.which-key/install.sh
 ```
 
-The installer validates and enables `huacnlee.which-key`, creates
-`~/.local/bin/which-key-trigger`, adds a marked keyboard-event observer to
-`~/.config/hypr/bindings.lua`, and reloads Hyprland. It never replaces an
-existing binding or an unrelated launcher.
+The first command uses Omarchy's standard plugin installation flow. The setup
+script creates `~/.local/bin/which-key-trigger`, adds a marked keyboard-event
+observer to `~/.config/hypr/bindings.lua`, and reloads Hyprland. It never
+re-adds an already installed plugin, replaces an existing binding, or replaces
+an unrelated launcher. Re-running the setup script safely refreshes the
+observer after keyboard layout or XKB option changes.
 
 To update an existing installation from the source checkout:
 
@@ -55,17 +57,15 @@ A quick Super tap does not open the guide.
 
 ## Uninstall
 
-From the cloned repository, run:
+Run the uninstaller from the installed plugin:
 
 ```bash
-cd omarchy-which-key
-./uninstall.sh
+~/.config/omarchy/plugins/huacnlee.which-key/uninstall.sh
 ```
 
 The uninstaller removes the marked observer block, removes the launcher only
 when it points to this plugin, asks Omarchy to remove `huacnlee.which-key`, and
-reloads Hyprland. Other bindings and files are left untouched. Keep the cloned
-repository until after uninstalling so `./uninstall.sh` remains available.
+reloads Hyprland. Other bindings and files are left untouched.
 
 ## Development
 

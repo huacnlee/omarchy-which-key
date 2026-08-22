@@ -64,13 +64,16 @@ export PATH="$test_root/bin:$PATH"
 export OMARCHY_WHICH_KEY_TEST_PLUGIN_DIR="$test_root/plugin"
 export OMARCHY_WHICH_KEY_LIFECYCLE_LOG="$test_root/lifecycle.log"
 
-"$repo_root/install.sh"
-grep -Fq 'omarchy plugin add' "$OMARCHY_WHICH_KEY_LIFECYCLE_LOG"
+"$test_root/plugin/install.sh"
+if grep -Fq 'omarchy plugin add' "$OMARCHY_WHICH_KEY_LIFECYCLE_LOG"; then
+  printf 'FAIL: installed plugin must not add itself again\n' >&2
+  exit 1
+fi
 grep -Fq 'hyprctl reload' "$OMARCHY_WHICH_KEY_LIFECYCLE_LOG"
 test -L "$HOME/.local/bin/which-key-trigger"
 grep -Fq -- '-- omarchy-which-key:begin' "$HOME/.config/hypr/bindings.lua"
 
-"$repo_root/uninstall.sh"
+"$test_root/plugin/uninstall.sh"
 grep -Fq 'omarchy plugin remove huacnlee.which-key --yes' "$OMARCHY_WHICH_KEY_LIFECYCLE_LOG"
 test ! -e "$HOME/.local/bin/which-key-trigger"
 test "$(cat "$HOME/.config/hypr/bindings.lua")" = '-- existing'

@@ -5,6 +5,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 plugin_id="huacnlee.which-key"
 omarchy_command="${OMARCHY_WHICH_KEY_OMARCHY:-omarchy}"
 hyprctl_command="${OMARCHY_WHICH_KEY_HYPRCTL:-hyprctl}"
+plugin_dir="${OMARCHY_WHICH_KEY_TEST_PLUGIN_DIR:-${HOME}/.config/omarchy/plugins/${plugin_id}}"
 
 for command_name in "$omarchy_command" "$hyprctl_command" jq xkbcli; do
   command -v "$command_name" >/dev/null || {
@@ -14,9 +15,10 @@ for command_name in "$omarchy_command" "$hyprctl_command" jq xkbcli; do
 done
 
 "$omarchy_command" plugin validate "$repo_root"
-"$omarchy_command" plugin add "$repo_root" --enable --yes
+if [[ ! -f "$plugin_dir/manifest.json" ]]; then
+  "$omarchy_command" plugin add "$repo_root" --enable --yes
+fi
 
-plugin_dir="${OMARCHY_WHICH_KEY_TEST_PLUGIN_DIR:-${HOME}/.config/omarchy/plugins/${plugin_id}}"
 trigger_target="$plugin_dir/scripts/which-key-trigger"
 bin_dir="${HOME}/.local/bin"
 trigger_link="$bin_dir/which-key-trigger"
