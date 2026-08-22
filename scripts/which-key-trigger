@@ -2,18 +2,19 @@
 
 set -euo pipefail
 
-if [[ $# -ne 3 || ${1:-} != state ]]; then
-  printf 'usage: which-key-trigger state <sequence> <modifier-mask>\n' >&2
-  exit 64
-fi
-
 event="$1"
-sequence="$2"
-mask="$3"
-[[ "$sequence" =~ ^[0-9]+$ && "$mask" =~ ^[0-9]+$ ]] || {
-  printf 'which-key-trigger: sequence and modifier mask must be integers\n' >&2
-  exit 64
-}
+case "$event" in
+  state)
+    [[ $# -eq 3 && "$2" =~ ^[0-9]+$ && "$3" =~ ^[0-9]+$ ]] || exit 64
+    ;;
+  dismiss)
+    [[ $# -eq 2 && "$2" =~ ^[0-9]+$ ]] || exit 64
+    ;;
+  *)
+    printf 'usage: which-key-trigger <state SEQUENCE MASK|dismiss SEQUENCE>\n' >&2
+    exit 64
+    ;;
+esac
 
 shell_command="${OMARCHY_WHICH_KEY_SHELL:-omarchy-shell}"
-exec "$shell_command" huacnlee.which-key "$event" "$sequence" "$mask"
+exec "$shell_command" huacnlee.which-key "$@"

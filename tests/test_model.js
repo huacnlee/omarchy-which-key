@@ -31,7 +31,7 @@ assert.deepStrictEqual(Array.from(superOnly.rows, row => row.key), ["W", "B", "B
 assert.strictEqual(superOnly.rows[0].duplicate, false)
 assert.strictEqual(superOnly.rows[1].duplicate, true)
 assert.strictEqual(superOnly.rows[2].duplicate, true)
-assert.strictEqual(superOnly.rows[3].label, "code:10")
+assert.strictEqual(superOnly.rows[3].label, "1")
 assert.strictEqual(superOnly.rows[3].key.includes("SUPER"), false)
 assert.strictEqual(superOnly.rows.some(row => row.key === "Q"), false)
 
@@ -56,6 +56,7 @@ assert.strictEqual(Model.modifierTitle(77), "SUPER + SHIFT + CTRL + ALT")
 assert.strictEqual(Model.modifierTitle(66), "SUPER + MOD2")
 assert.strictEqual(Model.keyLabel("RETURN", 0), "Enter")
 assert.strictEqual(Model.keyLabel("LEFT", 0), "←")
+assert.strictEqual(Model.keyLabel("code:19", 0), "0")
 assert.strictEqual(Model.keyLabel("mystery-key", 0), "mystery-key")
 
 assert.strictEqual(Model.isCurrentGeneration(3, 3), true)

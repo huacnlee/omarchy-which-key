@@ -105,6 +105,8 @@ assert_file_contains "$config" 'hl.on("input.keyboard.key"' \
   "installer should observe native keyboard events"
 assert_file_contains "$config" 'which-key-trigger state " .. tostring(time)' \
   "observer should preserve compositor event order"
+assert_file_contains "$config" 'which-key-trigger dismiss " .. tostring(time)' \
+  "a non-modifier shortcut should dismiss the guide"
 assert_file_contains "$config" '[64] = { name = "super_1", bit = 64 }' \
   "Super should follow the active XKB modifier map"
 assert_file_contains "$config" '[108] = { name = "super_2", bit = 64 }' \
@@ -139,8 +141,11 @@ OMARCHY_WHICH_KEY_TEST_LOG="$shell_log" \
 OMARCHY_WHICH_KEY_SHELL="$fake_shell" \
 OMARCHY_WHICH_KEY_TEST_LOG="$shell_log" \
   "$repo_root/scripts/which-key-trigger" state 2 65
+OMARCHY_WHICH_KEY_SHELL="$fake_shell" \
+OMARCHY_WHICH_KEY_TEST_LOG="$shell_log" \
+  "$repo_root/scripts/which-key-trigger" dismiss 3
 
-assert_equal $'huacnlee.which-key state 1 64\nhuacnlee.which-key state 2 65' \
+assert_equal $'huacnlee.which-key state 1 64\nhuacnlee.which-key state 2 65\nhuacnlee.which-key dismiss 3' \
   "$(<"$shell_log")" "trigger should forward exact IPC arguments"
 
 if OMARCHY_WHICH_KEY_SHELL="$fake_shell" \

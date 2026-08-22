@@ -63,6 +63,12 @@ function keyLabel(key, keycode) {
   var upper = raw.toUpperCase()
   if (KEY_LABELS[upper]) return KEY_LABELS[upper]
 
+  var numberRow = /^code:(1[0-9])$/i.exec(raw)
+  if (numberRow) {
+    var numberKey = Number(numberRow[1])
+    return numberKey === 19 ? "0" : String(numberKey - 9)
+  }
+
   var mouseMatch = /^mouse:(\d+)$/i.exec(raw)
   if (mouseMatch) {
     var button = Number(mouseMatch[1])

@@ -36,6 +36,8 @@ for heading in Requirements Install 'How it works' Usage Uninstall Development T
 done
 grep -Fqi 'no built-in shortcut' README.md
 grep -Fq 'function state(sequence: int, mask: int)' WhichKey.qml
+grep -Fq 'function dismiss(sequence: int)' WhichKey.qml
+grep -Fq '!consumed' WhichKey.qml
 grep -Fq 'nextSequence <= lastEventSequence' WhichKey.qml
 grep -Fq 'viewModel.rows.slice(0, 20)' components/WhichKeyCard.qml
 grep -Fq 'readonly property int pad: Style.space(10)' components/WhichKeyCard.qml

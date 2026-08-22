@@ -24,6 +24,7 @@ Item {
   property bool revealDue: false
   property int pendingLoadGeneration: 0
   property int lastEventSequence: 0
+  property bool consumed: false
 
   readonly property string sourceDir: manifest && manifest.__sourceDir
     ? String(manifest.__sourceDir) : ""
@@ -56,6 +57,7 @@ Item {
     if (wasHeld) return
 
     generation += 1
+    consumed = false
     opened = false
     bindingsReady = false
     revealDue = false
@@ -82,6 +84,7 @@ Item {
     pendingLoadGeneration = 0
     if (bindingProcess.running) bindingProcess.running = false
     close()
+    consumed = false
   }
 
   function setModifiers(mask) {
@@ -105,12 +108,24 @@ Item {
     setModifiers(nextMask)
   }
 
+  function acceptDismiss(sequence) {
+    var nextSequence = Number(sequence)
+    if (!isFinite(nextSequence) || nextSequence <= lastEventSequence) return
+    lastEventSequence = nextSequence
+    if (!superHeld) return
+    consumed = true
+    generation += 1
+    revealTimer.stop()
+    revealDue = false
+    close()
+  }
+
   function rebuildModel() {
     viewModel = Model.buildRows(bindings, modifierMask)
   }
 
   function maybeReveal() {
-    opened = revealDue && superHeld && bindingsReady
+    opened = revealDue && superHeld && !consumed && bindingsReady
       && viewModel && viewModel.rows && viewModel.rows.length > 0
   }
 
@@ -192,6 +207,10 @@ Item {
 
     function state(sequence: int, mask: int): void {
       root.acceptState(sequence, mask)
+    }
+
+    function dismiss(sequence: int): void {
+      root.acceptDismiss(sequence)
     }
   }
 
