@@ -38,6 +38,10 @@ grep -Fqi 'no built-in shortcut' README.md
 grep -Fq 'function state(sequence: int, mask: int)' WhichKey.qml
 grep -Fq 'nextSequence <= lastEventSequence' WhichKey.qml
 grep -Fq 'viewModel.rows.slice(0, 10)' components/WhichKeyCard.qml
+grep -Fq 'readonly property int pad: Style.space(10)' components/WhichKeyCard.qml
+grep -Fq 'readonly property int rowGap: Style.space(4)' components/WhichKeyCard.qml
+grep -Fq 'availableWidth, Style.space(300)' components/WhichKeyCard.qml
+test "$(grep -Fc 'color: Color.muted' components/WhichKeyCard.qml)" -eq 2
 grep -Fq 'scripts/which-key-bindings' WhichKey.qml
 grep -Fq 'loadGeneration' WhichKey.qml
 grep -Fq 'Model.isCurrentGeneration' WhichKey.qml
