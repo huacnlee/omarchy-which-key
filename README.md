@@ -33,10 +33,15 @@ The full-screen layer has an empty input region and requests no keyboard focus.
 
 ## Usage
 
-Hold a key mapped to Super for at least 200 ms. While it remains held, add Shift,
-Ctrl, or Alt to switch to that exact modifier combination. The compact guide
-shows at most twenty results in one column. Release Super to close immediately.
-A quick Super tap does not open the guide.
+Press and hold **Super** — the **Command (⌘)** key on an Apple keyboard or the
+**Windows (⊞)** key on a PC keyboard — to show the shortcut guide. Keep holding
+Super and add Shift, Ctrl, or Alt to see shortcuts for that exact key
+combination. Release Super to close the guide.
+
+By default, the guide appears after Super is held for 200 ms, so a quick tap
+does not open it. You can change this delay and choose which modifier
+combinations are shown from the Which Key bar widget settings. The guide shows
+up to twenty shortcuts at a time.
 
 ## Uninstall
 
