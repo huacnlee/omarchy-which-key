@@ -35,6 +35,14 @@ for heading in Requirements Install 'How it works' Usage Uninstall Development T
   grep -Fq "## $heading" README.md
 done
 grep -Fqi 'no built-in shortcut' README.md
+grep -Fq 'git clone https://github.com/huacnlee/omarchy-which-key.git' README.md
+grep -Fq './install.sh' README.md
+grep -Fq './uninstall.sh' README.md
+grep -Fq 'omarchy plugin update huacnlee.which-key --yes' README.md
+if grep -Fq 'which-key-trigger press' README.md; then
+  printf 'FAIL: README must not document the retired trigger protocol\n' >&2
+  exit 1
+fi
 grep -Fq 'function state(sequence: int, mask: int)' WhichKey.qml
 grep -Fq 'function dismiss(sequence: int)' WhichKey.qml
 grep -Fq '!consumed' WhichKey.qml

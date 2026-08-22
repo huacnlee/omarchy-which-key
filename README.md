@@ -11,9 +11,28 @@ Omarchy 4 with its Quickshell desktop, Hyprland Lua configuration support,
 
 ## Install
 
-Clone this repository and run `./install.sh`. The installer validates and
-enables the plugin, adds a marked keyboard-event observer to `bindings.lua`,
-and reloads Hyprland. It never replaces existing bindings.
+Clone the repository and run the installer:
+
+```bash
+git clone https://github.com/huacnlee/omarchy-which-key.git
+cd omarchy-which-key
+./install.sh
+```
+
+The installer validates and enables `huacnlee.which-key`, creates
+`~/.local/bin/which-key-trigger`, adds a marked keyboard-event observer to
+`~/.config/hypr/bindings.lua`, and reloads Hyprland. It never replaces an
+existing binding or an unrelated launcher.
+
+To update an existing installation from the source checkout:
+
+```bash
+git pull
+omarchy plugin update huacnlee.which-key --yes
+~/.config/omarchy/plugins/huacnlee.which-key/scripts/install-bindings
+hyprctl reload
+omarchy-restart-shell
+```
 
 ## How it works
 
@@ -34,8 +53,17 @@ A quick Super tap does not open the guide.
 
 ## Uninstall
 
-Run `./uninstall.sh`. It removes only the marked observer and owned launcher,
-then asks Omarchy to remove the plugin and reloads Hyprland.
+From the cloned repository, run:
+
+```bash
+cd omarchy-which-key
+./uninstall.sh
+```
+
+The uninstaller removes the marked observer block, removes the launcher only
+when it points to this plugin, asks Omarchy to remove `huacnlee.which-key`, and
+reloads Hyprland. Other bindings and files are left untouched. Keep the cloned
+repository until after uninstalling so `./uninstall.sh` remains available.
 
 ## Development
 
@@ -44,8 +72,14 @@ Run `make test` for parser, model, source, hook, and lifecycle tests. Run
 
 ## Troubleshooting
 
-If nothing appears, check `hyprctl configerrors`, confirm the plugin is enabled
-with `omarchy plugin list --json`, and run `which-key-trigger press super_l`.
-Bindings without a Hyprland description are intentionally omitted. Run the
-uninstaller to restore the exact pre-install configuration around the owned
-block.
+If nothing appears, check `hyprctl configerrors` and confirm the plugin is
+enabled with:
+
+```bash
+omarchy plugin list --json | jq '.[] | select(.id == "huacnlee.which-key")'
+```
+
+Bindings without a Hyprland description are intentionally omitted. Re-run the
+installed `scripts/install-bindings` command after changing keyboard layout or
+XKB options. Run the uninstaller to restore the exact pre-install configuration
+around the owned block.
