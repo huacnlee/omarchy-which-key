@@ -81,6 +81,7 @@ BorderSurface {
             color: Color.popups.text
             font.family: Style.font.family
             font.pixelSize: Style.font.body
+            font.weight: Font.Normal
             elide: Text.ElideRight
           }
         }
