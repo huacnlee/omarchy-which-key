@@ -23,6 +23,7 @@ Item {
   property bool bindingsReady: false
   property bool revealDue: false
   property int pendingLoadGeneration: 0
+  property int lastEventSequence: 0
 
   readonly property string sourceDir: manifest && manifest.__sourceDir
     ? String(manifest.__sourceDir) : ""
@@ -89,6 +90,19 @@ Item {
     modifierMask = Math.floor(numericMask)
     rebuildModel()
     maybeReveal()
+  }
+
+  function acceptState(sequence, mask) {
+    var nextSequence = Number(sequence)
+    var nextMask = Number(mask)
+    if (!isFinite(nextSequence) || !isFinite(nextMask)
+        || nextSequence <= lastEventSequence) return
+    lastEventSequence = nextSequence
+
+    var shouldHold = (nextMask & 64) !== 0
+    if (shouldHold && !superHeld) pressSuper("super_l")
+    else if (!shouldHold && superHeld) releaseSuper("super_l")
+    setModifiers(nextMask)
   }
 
   function rebuildModel() {
@@ -176,16 +190,8 @@ Item {
   IpcHandler {
     target: "huacnlee.which-key"
 
-    function press(key: string): void {
-      root.pressSuper(key)
-    }
-
-    function release(key: string): void {
-      root.releaseSuper(key)
-    }
-
-    function modifiers(mask: int): void {
-      root.setModifiers(mask)
+    function state(sequence: int, mask: int): void {
+      root.acceptState(sequence, mask)
     }
   }
 
@@ -216,6 +222,7 @@ Item {
         anchors.rightMargin: Style.gapsOut
         anchors.bottomMargin: Style.gapsOut
         viewModel: root.viewModel
+        availableWidth: overlay.width - Style.gapsOut * 2
       }
     }
   }

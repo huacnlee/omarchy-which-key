@@ -7,13 +7,15 @@ BorderSurface {
   id: card
 
   required property var viewModel
+  required property real availableWidth
+  readonly property var visibleRows: viewModel && viewModel.rows
+    ? viewModel.rows.slice(0, 10) : []
   readonly property int pad: Style.space(16)
-  readonly property int columnGap: Style.space(24)
   readonly property int rowGap: Style.space(8)
-  readonly property int keyWidth: Style.space(72)
+  readonly property int keyWidth: Style.space(56)
 
   width: Math.min(content.implicitWidth + borderLeft + pad * 2 + borderRight,
-                  Style.space(960))
+                  availableWidth, Style.space(360))
   height: content.implicitHeight + borderTop + pad * 2 + borderBottom
   color: Color.popups.background
   borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border,
@@ -44,42 +46,33 @@ BorderSurface {
       color: Color.popups.border
     }
 
-    RowLayout {
-      spacing: card.columnGap
+    ColumnLayout {
+      spacing: card.rowGap
 
       Repeater {
-        model: card.viewModel && card.viewModel.columns
-          ? card.viewModel.columns : []
+        model: card.visibleRows
 
-        delegate: ColumnLayout {
+        delegate: RowLayout {
           required property var modelData
-          spacing: card.rowGap
+          spacing: Style.space(10)
 
-          Repeater {
-            model: parent.modelData
+          Text {
+            Layout.preferredWidth: card.keyWidth
+            text: modelData.label
+            color: Color.accent
+            font.family: Style.font.family
+            font.pixelSize: Style.font.body
+            font.bold: true
+          }
 
-            delegate: RowLayout {
-              required property var modelData
-              spacing: Style.space(10)
-
-              Text {
-                Layout.preferredWidth: card.keyWidth
-                text: modelData.label
-                color: Color.accent
-                font.family: Style.font.family
-                font.pixelSize: Style.font.body
-                font.bold: true
-              }
-
-              Text {
-                Layout.preferredWidth: Style.space(220)
-                text: modelData.description
-                color: Color.popups.text
-                font.family: Style.font.family
-                font.pixelSize: Style.font.body
-                elide: Text.ElideRight
-              }
-            }
+          Text {
+            Layout.fillWidth: true
+            Layout.preferredWidth: Style.space(220)
+            text: modelData.description
+            color: Color.popups.text
+            font.family: Style.font.family
+            font.pixelSize: Style.font.body
+            elide: Text.ElideRight
           }
         }
       }

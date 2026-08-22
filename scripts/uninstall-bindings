@@ -6,6 +6,11 @@ begin_marker='-- omarchy-which-key:begin'
 end_marker='-- omarchy-which-key:end'
 config="${OMARCHY_WHICH_KEY_HYPR_CONFIG:-${HOME}/.config/hypr/bindings.lua}"
 
+if [[ -L "$config" ]]; then
+  printf 'uninstall-bindings: refusing to replace symlinked config: %s\n' "$config" >&2
+  exit 73
+fi
+
 if [[ ! -e "$config" ]] || ! grep -Fqx -- "$begin_marker" "$config"; then
   exit 0
 fi

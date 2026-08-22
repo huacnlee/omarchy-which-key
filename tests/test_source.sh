@@ -27,9 +27,17 @@ grep -Fq 'Color.popups.border' components/WhichKeyCard.qml
 grep -Fq 'Style.cornerRadius' components/WhichKeyCard.qml
 grep -Fq 'modelData.description' components/WhichKeyCard.qml
 grep -Fq 'modelData.label' components/WhichKeyCard.qml
-grep -Fq 'function press(key: string)' WhichKey.qml
-grep -Fq 'function release(key: string)' WhichKey.qml
-grep -Fq 'function modifiers(mask: int)' WhichKey.qml
+
+for file in README.md LICENSE Makefile install.sh uninstall.sh; do
+  test -f "$file"
+done
+for heading in Requirements Install 'How it works' Usage Uninstall Development Troubleshooting; do
+  grep -Fq "## $heading" README.md
+done
+grep -Fqi 'no built-in shortcut' README.md
+grep -Fq 'function state(sequence: int, mask: int)' WhichKey.qml
+grep -Fq 'nextSequence <= lastEventSequence' WhichKey.qml
+grep -Fq 'viewModel.rows.slice(0, 10)' components/WhichKeyCard.qml
 grep -Fq 'scripts/which-key-bindings' WhichKey.qml
 grep -Fq 'loadGeneration' WhichKey.qml
 grep -Fq 'Model.isCurrentGeneration' WhichKey.qml

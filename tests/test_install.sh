@@ -10,6 +10,7 @@ config="$test_root/bindings.lua"
 shell_log="$test_root/shell.log"
 fake_shell="$test_root/omarchy-shell"
 fake_xkbcli="$test_root/xkbcli"
+fake_hyprctl="$test_root/hyprctl"
 
 assert_equal() {
   local expected="$1" actual="$2" message="$3"
@@ -43,6 +44,29 @@ chmod +x "$fake_shell"
 cat >"$fake_xkbcli" <<'SH'
 #!/bin/bash
 test "${1:-}" = compile-keymap
+[[ "$*" == *'--options altwin:swap_alt_win'* ]]
+if [[ "$*" == *'--modmaps'* ]]; then
+cat <<'MODMAPS'
+Keys modifier maps:
+  LFSH:
+    real:    Shift
+  RTSH:
+    real:    Shift
+  LCTL:
+    real:    Control
+  RCTL:
+    real:    Control
+  LALT:
+    real:    Mod4
+  RALT:
+    real:    Mod4
+  LWIN:
+    real:    Mod1
+  RWIN:
+    real:    Mod1
+MODMAPS
+exit 0
+fi
 cat <<'KEYMAP'
 xkb_keycodes "evdev" {
   <LFSH> = 50;
@@ -58,7 +82,17 @@ KEYMAP
 SH
 chmod +x "$fake_xkbcli"
 
+cat >"$fake_hyprctl" <<'SH'
+#!/bin/bash
+case "${3:-}" in
+  input:kb_options) printf '%s\n' '{"str":"altwin:swap_alt_win"}' ;;
+  *) printf '%s\n' '{"str":""}' ;;
+esac
+SH
+chmod +x "$fake_hyprctl"
+
 OMARCHY_WHICH_KEY_XKBCLI="$fake_xkbcli" \
+OMARCHY_WHICH_KEY_HYPRCTL="$fake_hyprctl" \
 OMARCHY_WHICH_KEY_HYPR_CONFIG="$config" "$repo_root/scripts/install-bindings"
 
 assert_equal "1" "$(grep -c '^-- omarchy-which-key:begin$' "$config")" \
@@ -69,16 +103,16 @@ assert_equal "640" "$(stat -c '%a' "$config")" \
   "installer should preserve config mode"
 assert_file_contains "$config" 'hl.on("input.keyboard.key"' \
   "installer should observe native keyboard events"
-assert_file_contains "$config" '[133] = { name = "super_l", bit = 64 }' \
-  "left Super should use the detected XKB keycode"
-assert_file_contains "$config" '[134] = { name = "super_r", bit = 64 }' \
-  "right Super should use the detected XKB keycode"
-assert_file_contains "$config" '[50] = { name = "shift_l", bit = 1 }' \
+assert_file_contains "$config" '[64] = { name = "super_1", bit = 64 }' \
+  "Super should follow the active XKB modifier map"
+assert_file_contains "$config" '[108] = { name = "super_2", bit = 64 }' \
+  "both configured Super keys should be observed"
+assert_file_contains "$config" '[50] = { name = "shift_1", bit = 1 }' \
   "left Shift should update the modifier mask"
-assert_file_contains "$config" '[37] = { name = "ctrl_l", bit = 4 }' \
+assert_file_contains "$config" '[37] = { name = "ctrl_1", bit = 4 }' \
   "left Ctrl should update the modifier mask"
-assert_file_contains "$config" '[64] = { name = "alt_l", bit = 8 }' \
-  "left Alt should update the modifier mask"
+assert_file_contains "$config" '[133] = { name = "alt_1", bit = 8 }' \
+  "Alt should follow the active XKB modifier map"
 if grep -Fq 'hl.bind(' "$config"; then
   printf 'FAIL: observer must not install a key binding\n' >&2
   exit 1
@@ -89,6 +123,7 @@ OMARCHY_TEST_CONFIG="$config" \
   lua -e 'assert(loadfile(os.getenv("OMARCHY_TEST_CONFIG")))'
 
 OMARCHY_WHICH_KEY_XKBCLI="$fake_xkbcli" \
+OMARCHY_WHICH_KEY_HYPRCTL="$fake_hyprctl" \
 OMARCHY_WHICH_KEY_HYPR_CONFIG="$config" "$repo_root/scripts/install-bindings"
 
 assert_equal "1" "$(grep -c '^-- omarchy-which-key:begin$' "$config")" \
@@ -98,15 +133,12 @@ assert_equal "1" "$(find "$test_root" -maxdepth 1 -name 'bindings.lua.bak.*' | w
 
 OMARCHY_WHICH_KEY_SHELL="$fake_shell" \
 OMARCHY_WHICH_KEY_TEST_LOG="$shell_log" \
-  "$repo_root/scripts/which-key-trigger" press super_l
+  "$repo_root/scripts/which-key-trigger" state 1 64
 OMARCHY_WHICH_KEY_SHELL="$fake_shell" \
 OMARCHY_WHICH_KEY_TEST_LOG="$shell_log" \
-  "$repo_root/scripts/which-key-trigger" modifiers 65
-OMARCHY_WHICH_KEY_SHELL="$fake_shell" \
-OMARCHY_WHICH_KEY_TEST_LOG="$shell_log" \
-  "$repo_root/scripts/which-key-trigger" release super_l
+  "$repo_root/scripts/which-key-trigger" state 2 65
 
-assert_equal $'huacnlee.which-key press super_l\nhuacnlee.which-key modifiers 65\nhuacnlee.which-key release super_l' \
+assert_equal $'huacnlee.which-key state 1 64\nhuacnlee.which-key state 2 65' \
   "$(<"$shell_log")" "trigger should forward exact IPC arguments"
 
 if OMARCHY_WHICH_KEY_SHELL="$fake_shell" \

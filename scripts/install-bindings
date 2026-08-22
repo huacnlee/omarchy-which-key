@@ -7,6 +7,12 @@ end_marker='-- omarchy-which-key:end'
 config="${OMARCHY_WHICH_KEY_HYPR_CONFIG:-${HOME}/.config/hypr/bindings.lua}"
 config_dir="$(dirname "$config")"
 xkbcli_command="${OMARCHY_WHICH_KEY_XKBCLI:-xkbcli}"
+hyprctl_command="${OMARCHY_WHICH_KEY_HYPRCTL:-hyprctl}"
+
+if [[ -L "$config" ]]; then
+  printf 'install-bindings: refusing to replace symlinked config: %s\n' "$config" >&2
+  exit 73
+fi
 
 mkdir -p "$config_dir"
 if [[ ! -e "$config" ]]; then
@@ -20,39 +26,35 @@ fi
 
 temporary="$(mktemp "${config}.tmp.XXXXXX")"
 keymap="$(mktemp)"
+modmaps="$(mktemp)"
+entries="$(mktemp)"
 cleanup() {
-  rm -f -- "$temporary" "$keymap"
+  rm -f -- "$temporary" "$keymap" "$modmaps" "$entries"
 }
 trap cleanup EXIT
 
-"$xkbcli_command" compile-keymap </dev/null >"$keymap"
+xkb_args=()
+for option in kb_model kb_layout kb_variant kb_options; do
+  value="$($hyprctl_command getoption -j "input:$option" 2>/dev/null | jq -r '.str // empty')"
+  [[ -n "$value" ]] && xkb_args+=("--${option#kb_}" "$value")
+done
+"$xkbcli_command" compile-keymap "${xkb_args[@]}" >"$keymap"
+"$xkbcli_command" compile-keymap "${xkb_args[@]}" --modmaps >"$modmaps"
 
-keycode_for() {
-  local key_name="$1"
-  local code
-  code="$(awk -v wanted="$key_name" '
-    match($0, /<([A-Za-z0-9_]+)>[[:space:]]*=[[:space:]]*([0-9]+)[[:space:]]*;/, parts) {
-      if (parts[1] == wanted) {
-        print parts[2]
-        exit
-      }
-    }
-  ' "$keymap")"
-  if [[ -z "$code" ]]; then
-    printf 'install-bindings: XKB keycode not found for %s\n' "$key_name" >&2
-    exit 65
-  fi
-  printf '%s' "$code"
-}
-
-left_shift="$(keycode_for LFSH)"
-right_shift="$(keycode_for RTSH)"
-left_ctrl="$(keycode_for LCTL)"
-right_ctrl="$(keycode_for RCTL)"
-left_alt="$(keycode_for LALT)"
-right_alt="$(keycode_for RALT)"
-left_super="$(keycode_for LWIN)"
-right_super="$(keycode_for RWIN)"
+awk '
+  FNR == NR {
+    if (match($0, /<([A-Za-z0-9_]+)>[[:space:]]*=[[:space:]]*([0-9]+)[[:space:]]*;/, p)) code[p[1]] = p[2]
+    next
+  }
+  match($0, /^  ([A-Za-z0-9_]+):$/, p) { key = p[1]; next }
+  match($0, /^[[:space:]]+real:[[:space:]]+(Shift|Control|Mod1|Mod4)$/, p) && code[key] {
+    role = p[1] == "Shift" ? "shift" : (p[1] == "Control" ? "ctrl" : (p[1] == "Mod1" ? "alt" : "super"))
+    bit = p[1] == "Shift" ? 1 : (p[1] == "Control" ? 4 : (p[1] == "Mod1" ? 8 : 64))
+    count[role]++
+    print code[key], role "_" count[role], bit
+  }
+' "$keymap" "$modmaps" >"$entries"
+grep -q ' super_' "$entries" || { printf 'install-bindings: active Super modifier has no XKB keys\n' >&2; exit 65; }
 
 awk -v begin="$begin_marker" -v end="$end_marker" '
   $0 == begin { in_owned_block = 1; next }
@@ -66,22 +68,13 @@ awk -v begin="$begin_marker" -v end="$end_marker" '
 {
   printf '%s\n' "$begin_marker"
   printf '%s\n' 'local omarchy_which_key_codes = {'
-  printf '  [%s] = { name = "super_l", bit = 64 },\n' "$left_super"
-  printf '  [%s] = { name = "super_r", bit = 64 },\n' "$right_super"
-  printf '  [%s] = { name = "shift_l", bit = 1 },\n' "$left_shift"
-  printf '  [%s] = { name = "shift_r", bit = 1 },\n' "$right_shift"
-  printf '  [%s] = { name = "ctrl_l", bit = 4 },\n' "$left_ctrl"
-  printf '  [%s] = { name = "ctrl_r", bit = 4 },\n' "$right_ctrl"
-  printf '  [%s] = { name = "alt_l", bit = 8 },\n' "$left_alt"
-  printf '  [%s] = { name = "alt_r", bit = 8 },\n' "$right_alt"
+  while read -r code name bit; do printf '  [%s] = { name = "%s", bit = %s },\n' "$code" "$name" "$bit"; done <"$entries"
   printf '%s\n' '}'
   printf '%s\n' 'local omarchy_which_key_bits = {'
-  printf '%s\n' '  super_l = 64, super_r = 64,'
-  printf '%s\n' '  shift_l = 1, shift_r = 1,'
-  printf '%s\n' '  ctrl_l = 4, ctrl_r = 4,'
-  printf '%s\n' '  alt_l = 8, alt_r = 8,'
+  while read -r _ name bit; do printf '  %s = %s,\n' "$name" "$bit"; done <"$entries"
   printf '%s\n' '}'
   printf '%s\n' 'local omarchy_which_key_held = {}'
+  printf '%s\n' 'local omarchy_which_key_sequence = 0'
   printf '%s\n' 'hl.on("input.keyboard.key", function(keycode, _, state)'
   printf '%s\n' '  local key = omarchy_which_key_codes[keycode]'
   printf '%s\n' '  if not key then return end'
@@ -91,10 +84,8 @@ awk -v begin="$begin_marker" -v end="$end_marker" '
   printf '%s\n' '  for name, _ in pairs(omarchy_which_key_held) do'
   printf '%s\n' '    mask = mask | omarchy_which_key_bits[name]'
   printf '%s\n' '  end'
-  printf '%s\n' '  if key.bit == 64 then'
-  printf '%s\n' '    hl.exec_cmd("which-key-trigger " .. (pressed and "press" or "release") .. " " .. key.name)'
-  printf '%s\n' '  end'
-  printf '%s\n' '  hl.exec_cmd("which-key-trigger modifiers " .. tostring(mask))'
+  printf '%s\n' '  omarchy_which_key_sequence = omarchy_which_key_sequence + 1'
+  printf '%s\n' '  hl.exec_cmd("which-key-trigger state " .. tostring(omarchy_which_key_sequence) .. " " .. tostring(mask))'
   printf '%s\n' 'end)'
   printf '%s\n' "$end_marker"
 } >>"$temporary"
