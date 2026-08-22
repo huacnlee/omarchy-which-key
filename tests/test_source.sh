@@ -95,7 +95,7 @@ grep -Fq 'modelData.label' components/WhichKeyCard.qml
 for file in README.md LICENSE Makefile install.sh uninstall.sh; do
   test -f "$file"
 done
-for heading in Requirements Install 'How it works' Usage Uninstall Development Troubleshooting; do
+for heading in Requirements Install 'How it works' Usage Uninstall Troubleshooting; do
   grep -Fq "## $heading" README.md
 done
 grep -Fqi 'no built-in shortcut' README.md
@@ -104,13 +104,18 @@ grep -Fq 'alt="Omarchy Which-Key"' README.md
 grep -Fq 'src="preview.png"' README.md
 grep -Fq "Omarchy Which Key brings LazyVim's which-key experience to the desktop." README.md
 test -f preview.png
-grep -Fq '~/.config/omarchy/plugins/huacnlee.which-key/install.sh' README.md
-grep -Fq '~/.config/omarchy/plugins/huacnlee.which-key/uninstall.sh' README.md
+if grep -Eq '~/.config/omarchy/plugins/huacnlee\.which-key/(install\.sh|uninstall\.sh|scripts/)' README.md; then
+  printf 'FAIL: README must not expose internal lifecycle scripts\n' >&2
+  exit 1
+fi
 if grep -Fq 'git clone https://github.com/huacnlee/omarchy-which-key.git' README.md; then
   printf 'FAIL: public installation must use omarchy plugin add\n' >&2
   exit 1
 fi
-grep -Fq 'omarchy plugin update huacnlee.which-key --yes' README.md
+if grep -Fq 'omarchy plugin update huacnlee.which-key --yes' README.md; then
+  printf 'FAIL: README must not require a separate manual update workflow\n' >&2
+  exit 1
+fi
 if grep -Fq 'which-key-trigger press' README.md; then
   printf 'FAIL: README must not document the retired trigger protocol\n' >&2
   exit 1
