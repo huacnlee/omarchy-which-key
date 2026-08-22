@@ -1,0 +1,53 @@
+#!/bin/bash
+
+set -euo pipefail
+
+hyprctl_command="${OMARCHY_WHICH_KEY_HYPRCTL:-hyprctl}"
+raw_bindings="$(mktemp)"
+records="$(mktemp)"
+cleanup() {
+  rm -f -- "$raw_bindings" "$records"
+}
+trap cleanup EXIT
+
+"$hyprctl_command" binds >"$raw_bindings"
+
+awk '
+  function emit() {
+    if (!seen) return
+    printf "%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\n",
+      field["modmask"], field["key"], field["keycode"],
+      field["description"], field["dispatcher"], field["arg"],
+      field["release"], field["repeat"], field["submap"]
+  }
+
+  /^bind/ {
+    emit()
+    delete field
+    seen = 1
+    next
+  }
+
+  seen && match($0, /^\t[a-z_]+: /) {
+    field[substr($0, 2, RLENGTH - 3)] = substr($0, RLENGTH + 1)
+  }
+
+  END { emit() }
+' "$raw_bindings" >"$records"
+
+jq -Rn '
+  [inputs
+    | split("\u001f")
+    | {
+        modmask: ((.[0] // "0") | tonumber),
+        key: (.[1] // ""),
+        keycode: ((.[2] // "0") | tonumber),
+        description: (.[3] // ""),
+        dispatcher: (.[4] // ""),
+        arg: (.[5] // ""),
+        release: ((.[6] // "false") == "true"),
+        repeat: ((.[7] // "false") == "true"),
+        submap: (.[8] // "")
+      }
+  ]
+' <"$records"

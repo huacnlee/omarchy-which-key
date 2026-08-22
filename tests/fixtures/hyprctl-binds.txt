@@ -1,0 +1,60 @@
+bind
+	modmask: 64
+	submap: 
+	key: B
+	keycode: 0
+	description: Browser
+	dispatcher: exec
+	arg: uwsm-app -- chromium
+	release: false
+	repeat: false
+bind
+	modmask: 65
+	submap: 
+	key: code:20
+	keycode: 20
+	description: Resize "left", precisely
+	dispatcher: __lua
+	arg: hl.dsp.window.resize({ x = -100, y = 0 })
+	release: false
+	repeat: true
+bind
+	modmask: 64
+	submap: 
+	key: W
+	keycode: 0
+	description: 切换窗口
+	dispatcher: __lua
+	arg: hl.dsp.window.close()
+	release: true
+	repeat: false
+bind
+	modmask: 64
+	submap: 
+	key: Q
+	keycode: 0
+	description: 
+	dispatcher: exec
+	arg: hidden-in-model
+	release: false
+	repeat: false
+bind
+	modmask: 64
+	submap: resize
+	key: B
+	keycode: 0
+	description: Duplicate browser action
+	dispatcher: exec
+	arg: duplicate
+	release: false
+	repeat: false
+bind
+	modmask: 72
+	submap: 
+	key: mouse:272
+	keycode: 272
+	description: Move window
+	dispatcher: movewindow
+	arg: 
+	release: false
+	repeat: false
