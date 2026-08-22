@@ -209,6 +209,7 @@ BarWidget {
                 WhichKeyMenu {
                   id: linkMenu
                   anchorItem: menuButton
+                  boundaryItem: keyCatcher
 
                   MenuRow {
                     iconText: ""
@@ -260,7 +261,7 @@ BarWidget {
           RowLayout {
             width: parent.width
             Text {
-              text: "Delay"
+              text: "Show guide after"
               color: root.foreground
               font.family: root.fontFamily
               font.pixelSize: Style.font.body
@@ -288,15 +289,40 @@ BarWidget {
 
           PanelSeparator { width: parent.width; foreground: root.foreground }
 
-          PanelSectionHeader {
-            text: "SHOW GUIDE FOR"
-            foreground: root.foreground
-            fontFamily: root.fontFamily
+          RowLayout {
+            width: parent.width
+
+            PanelSectionHeader {
+              text: "SHOW GUIDE FOR"
+              foreground: root.foreground
+              fontFamily: root.fontFamily
+              Layout.alignment: Qt.AlignVCenter
+            }
+
+            Item { Layout.fillWidth: true }
+
+            Button {
+              text: "All"
+              foreground: root.foreground
+              fontSize: Style.font.bodySmall
+              horizontalPadding: Style.space(6)
+              verticalPadding: Style.space(2)
+              onClicked: config.selectAll()
+            }
+
+            Button {
+              text: "None"
+              foreground: root.foreground
+              fontSize: Style.font.bodySmall
+              horizontalPadding: Style.space(6)
+              verticalPadding: Style.space(2)
+              onClicked: config.clearAll()
+            }
           }
 
           Column {
             width: parent.width
-            spacing: Style.space(4)
+            spacing: Style.space(2)
 
             Repeater {
               model: config.combinations
@@ -311,11 +337,6 @@ BarWidget {
             }
           }
 
-          Row {
-            spacing: Style.space(8)
-            Button { text: "Select all"; foreground: root.foreground; bordered: true; onClicked: config.selectAll() }
-            Button { text: "Clear all"; foreground: root.foreground; bordered: true; onClicked: config.clearAll() }
-          }
         }
       }
     }

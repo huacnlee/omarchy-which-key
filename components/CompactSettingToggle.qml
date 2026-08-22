@@ -11,7 +11,7 @@ BorderSurface {
   property color accent: Color.accent
   signal toggled()
 
-  implicitHeight: Style.space(36)
+  implicitHeight: Style.space(30)
   radius: Style.cornerRadius
   color: mouse.containsMouse
     ? Style.hoverFillFor(foreground, accent) : "transparent"
@@ -19,14 +19,14 @@ BorderSurface {
 
   Text {
     anchors.left: parent.left
-    anchors.leftMargin: Style.space(8)
+    anchors.leftMargin: 0
     anchors.right: toggle.left
     anchors.rightMargin: Style.space(8)
     anchors.verticalCenter: parent.verticalCenter
     text: root.label
     color: root.foreground
     font.family: Style.font.family
-    font.pixelSize: Style.font.body
+    font.pixelSize: Style.font.bodySmall
     font.weight: Font.Normal
     elide: Text.ElideRight
   }
@@ -34,7 +34,7 @@ BorderSurface {
   ToggleSwitch {
     id: toggle
     anchors.right: parent.right
-    anchors.rightMargin: Style.space(4)
+    anchors.rightMargin: 0
     anchors.verticalCenter: parent.verticalCenter
     checked: root.checked
     foreground: root.foreground

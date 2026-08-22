@@ -50,6 +50,22 @@ grep -Fq 'text: "GitHub..."' widget.qml
 grep -Fq 'text: "Twitter..."' widget.qml
 grep -Fq 'MenuSeparator {' widget.qml
 grep -Fq 'WhichKeyMenu {' widget.qml
+grep -Fq 'boundaryItem: keyCatcher' widget.qml
+grep -Fq 'text: "All"' widget.qml
+grep -Fq 'text: "None"' widget.qml
+grep -Fq 'text: "Show guide after"' widget.qml
+if grep -Fq 'text: "Delay"' widget.qml; then
+  printf 'FAIL: delay setting must describe what appears\n' >&2
+  exit 1
+fi
+grep -Fq 'implicitHeight: Style.space(30)' components/CompactSettingToggle.qml
+grep -Fq 'font.pixelSize: Style.font.bodySmall' components/CompactSettingToggle.qml
+grep -Fq 'anchors.leftMargin: 0' components/CompactSettingToggle.qml
+grep -Fq 'anchors.rightMargin: 0' components/CompactSettingToggle.qml
+if grep -Eq 'Select all|Clear all' widget.qml; then
+  printf 'FAIL: bulk selection labels must stay compact\n' >&2
+  exit 1
+fi
 if grep -Eq 'text: "⌨"|iconText: "⋮"|id: integrationButton' widget.qml; then
   printf 'FAIL: widget must use system icon glyphs and a state switch\n' >&2
   exit 1

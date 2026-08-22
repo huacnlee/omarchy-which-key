@@ -7,6 +7,7 @@ Popup {
   id: root
 
   required property Item anchorItem
+  required property Item boundaryItem
   property int gap: Style.space(4)
   default property alias menuItems: menuContent.data
 
@@ -17,13 +18,18 @@ Popup {
   closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
   function reposition() {
-    if (!opened || !anchorItem || !parent) return
+    if (!opened || !anchorItem || !boundaryItem || !parent) return
     var point = anchorItem.mapToItem(parent, 0, 0)
+    var boundary = boundaryItem.mapToItem(parent, 0, 0)
+    var left = boundary.x + gap
+    var right = boundary.x + boundaryItem.width - gap
+    var top = boundary.y + gap
+    var bottom = boundary.y + boundaryItem.height - gap
     var preferredX = point.x + anchorItem.width - width
     var below = point.y + anchorItem.height + gap
     var above = point.y - height - gap
-    x = Math.max(0, Math.min(preferredX, parent.width - width))
-    y = below + height <= parent.height ? below : Math.max(0, above)
+    x = Math.max(left, Math.min(preferredX, right - width))
+    y = below + height <= bottom ? below : Math.max(top, above)
   }
 
   onOpened: Qt.callLater(reposition)
