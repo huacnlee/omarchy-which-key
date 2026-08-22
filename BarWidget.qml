@@ -6,28 +6,46 @@ import Quickshell.Io
 import qs.Commons
 import qs.Ui
 
-Panel {
+BarWidget {
   id: root
 
-  property var manifest: null
   moduleName: "huacnlee.which-key"
-  ipcTarget: "huacnlee.which-key.settings"
-  manageIpc: true
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight
 
-  readonly property string sourceDir: manifest && manifest.__sourceDir
-    ? String(manifest.__sourceDir)
-    : config.configHome + "/omarchy/plugins/huacnlee.which-key"
+  readonly property string sourceDir: localPath(Qt.resolvedUrl("."))
   readonly property color foreground: bar ? bar.foreground : Color.foreground
   readonly property color dim: Color.muted
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
+  readonly property bool opened: panelController.open
+  property bool popoutSwitchClosing: false
 
   property string integrationState: "disabled"
   property string actionError: ""
   property bool actionBusy: false
 
   WhichKeyConfig { id: config }
+  PanelController { id: panelController }
+
+  function localPath(url) {
+    var value = String(url || "")
+    if (value.indexOf("file://") === 0) value = value.substring(7)
+    try { return decodeURIComponent(value) } catch (error) { return value }
+  }
+
+  function open() { panelController.show() }
+  function close() { panelController.hide() }
+  function toggle() { opened ? close() : open() }
+  function closeForPopoutSwitch() {
+    popoutSwitchClosing = true
+    close()
+    Qt.callLater(function() { popoutSwitchClosing = false })
+  }
+  function switchPanel(direction) {
+    if (bar && typeof bar.switchPanelFrom === "function")
+      return bar.switchPanelFrom(root, direction)
+    return false
+  }
 
   function refreshStatus() {
     if (!sourceDir || statusProcess.running) return
@@ -50,6 +68,15 @@ Panel {
     config.settingsFile.reload()
   }
   Component.onCompleted: refreshStatus()
+
+  IpcHandler {
+    target: "huacnlee.which-key.settings"
+    function open(): void { root.open() }
+    function close(): void { root.close() }
+    function show(): void { root.open() }
+    function hide(): void { root.close() }
+    function toggle(): void { root.toggle() }
+  }
 
   Process {
     id: statusProcess
