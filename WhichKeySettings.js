@@ -2,6 +2,14 @@
 
 var DEFAULT_MASKS = [64, 65, 68, 72, 69, 73, 76, 77]
 
+// FileView hands over the settings file in one piece, so anything far past a
+// plausible settings document is rejected before it is parsed or kept.
+var MAX_SETTINGS_CHARS = 65536
+
+function isOversized(raw) {
+  return String(raw || "").length > MAX_SETTINGS_CHARS
+}
+
 function normalize(value) {
   var source = value && typeof value === "object" ? value : {}
   var delay = Number(source.delayMs)

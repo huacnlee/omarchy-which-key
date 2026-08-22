@@ -14,4 +14,8 @@ assert.deepStrictEqual(Array.from(Settings.toggleMask(defaults.enabledMasks, 64,
 assert.strictEqual(Settings.maskEnabled([65], 65), true)
 assert.strictEqual(Settings.maskEnabled([65], 64), false)
 
+assert.strictEqual(Settings.isOversized('{"delayMs":200}'), false)
+assert.strictEqual(Settings.isOversized("x".repeat(Settings.MAX_SETTINGS_CHARS)), false)
+assert.strictEqual(Settings.isOversized("x".repeat(Settings.MAX_SETTINGS_CHARS + 1)), true)
+
 console.log("settings tests passed")

@@ -146,6 +146,7 @@ BarWidget {
             fontFamily: root.fontFamily
             iconComponent: Component {
               Text {
+                textFormat: Text.PlainText
                 text: ""
                 color: root.foreground
                 font.family: root.fontFamily
@@ -162,6 +163,7 @@ BarWidget {
                   spacing: Style.space(6)
 
                   Text {
+                    textFormat: Text.PlainText
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Enabled"
                     color: root.dim
@@ -256,6 +258,7 @@ BarWidget {
           }
 
           Text {
+            textFormat: Text.PlainText
             visible: root.actionError !== "" || config.error !== ""
             width: parent.width
             text: root.actionError !== "" ? root.actionError : config.error
@@ -270,6 +273,7 @@ BarWidget {
           RowLayout {
             width: parent.width
             Text {
+              textFormat: Text.PlainText
               text: "Show guide after"
               color: root.foreground
               font.family: root.fontFamily
@@ -278,6 +282,7 @@ BarWidget {
             }
             Item { Layout.fillWidth: true }
             Text {
+              textFormat: Text.PlainText
               text: config.delayMs + " ms"
               color: root.dim
               font.family: root.fontFamily

@@ -67,4 +67,15 @@ assert.strictEqual(Model.isCurrentGeneration(3, 3), true)
 assert.strictEqual(Model.isCurrentGeneration(3, 2), false)
 assert.strictEqual(Model.isCurrentGeneration(3, "3"), false)
 
+assert.strictEqual(Model.isPayloadTooLarge(""), false)
+assert.strictEqual(Model.isPayloadTooLarge("x".repeat(Model.MAX_PAYLOAD_CHARS)), false)
+assert.strictEqual(Model.isPayloadTooLarge("x".repeat(Model.MAX_PAYLOAD_CHARS + 1)), true)
+
+const overflowing = []
+for (let index = 0; index < Model.MAX_BINDINGS + 25; index++)
+  overflowing.push({ modmask: 64, key: "A", description: "Bind " + index })
+assert.strictEqual(Model.limitBindings(overflowing).length, Model.MAX_BINDINGS)
+assert.strictEqual(Model.limitBindings([{ key: "A" }]).length, 1)
+assert.strictEqual(Model.limitBindings("not an array").length, 0)
+
 console.log("model tests passed")

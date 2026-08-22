@@ -139,6 +139,21 @@ if grep -Eq '#[0-9A-Fa-f]{3,8}|Qt\.rgba?\(|color:[[:space:]]*"[^"]+"' components
   printf 'FAIL: visible card colors must use Omarchy system color tokens\n' >&2
   exit 1
 fi
+# Binding text comes from the user's live compositor config: it is rendered as
+# plain text so no card row can be interpreted as rich text or load resources.
+test "$(grep -Fc 'textFormat: Text.PlainText' components/WhichKeyCard.qml)" -eq "$(grep -Fc 'Text {' components/WhichKeyCard.qml)"
+test "$(grep -Fc 'textFormat: Text.PlainText' widget.qml)" -eq "$(grep -Fc 'Text {' widget.qml)"
+test "$(grep -Fc 'textFormat: Text.PlainText' components/MenuRow.qml)" -eq "$(grep -Fc 'Text {' components/MenuRow.qml)"
+test "$(grep -Fc 'textFormat: Text.PlainText' components/CompactSettingToggle.qml)" -eq "$(grep -Fc 'Text {' components/CompactSettingToggle.qml)"
+
+# Every payload the shell buffers is bounded before it reaches the long-lived process.
+grep -Fq 'OMARCHY_WHICH_KEY_MAX_BYTES' scripts/which-key-bindings
+grep -Fq 'OMARCHY_WHICH_KEY_MAX_BINDS' scripts/which-key-bindings
+grep -Fq 'OMARCHY_WHICH_KEY_MAX_FIELD' scripts/which-key-bindings
+grep -Fq 'Model.isPayloadTooLarge' WhichKey.qml
+grep -Fq 'Model.limitBindings' WhichKey.qml
+grep -Fq 'Settings.isOversized' WhichKeyConfig.qml
+
 grep -Fq 'scripts/which-key-bindings' WhichKey.qml
 grep -Fq 'loadGeneration' WhichKey.qml
 grep -Fq 'Model.isCurrentGeneration' WhichKey.qml

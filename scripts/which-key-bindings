@@ -2,7 +2,24 @@
 
 set -euo pipefail
 
+# The compositor is trusted but not assumed to be well behaved: an oversized
+# `hyprctl binds` response must never grow the long-lived shell process that
+# collects this output. Every stage below is bounded, so a runaway response
+# degrades the guide to a partial list instead of allocating without limit.
 hyprctl_command="${OMARCHY_WHICH_KEY_HYPRCTL:-hyprctl}"
+max_bytes="${OMARCHY_WHICH_KEY_MAX_BYTES:-1048576}"
+max_binds="${OMARCHY_WHICH_KEY_MAX_BINDS:-2000}"
+max_field="${OMARCHY_WHICH_KEY_MAX_FIELD:-512}"
+
+for limit in max_bytes max_binds max_field; do
+  case "${!limit}" in
+    "" | *[!0-9]* | 0)
+      printf 'which-key: %s must be a positive integer\n' "$limit" >&2
+      exit 2
+      ;;
+  esac
+done
+
 raw_bindings="$(mktemp)"
 records="$(mktemp)"
 cleanup() {
@@ -10,11 +27,29 @@ cleanup() {
 }
 trap cleanup EXIT
 
-"$hyprctl_command" binds >"$raw_bindings"
+set +o pipefail
+"$hyprctl_command" binds | head -c "$max_bytes" >"$raw_bindings"
+hyprctl_status="${PIPESTATUS[0]}"
+set -o pipefail
 
-awk '
+truncated=0
+if [ "$(wc -c <"$raw_bindings")" -ge "$max_bytes" ]; then
+  truncated=1
+fi
+
+# `head` closing the pipe at the byte cap kills the compositor query with
+# SIGPIPE (141). That is the truncation path, not a compositor failure, so it
+# is the only nonzero status the parser absorbs.
+if [ "$hyprctl_status" -ne 0 ] \
+  && ! { [ "$hyprctl_status" -eq 141 ] && [ "$truncated" -eq 1 ]; }; then
+  exit "$hyprctl_status"
+fi
+
+awk -v max_binds="$max_binds" -v truncated="$truncated" '
   function emit() {
-    if (!seen) return
+    if (!seen || full) return
+    if (emitted >= max_binds) { full = 1; return }
+    emitted++
     printf "%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\n",
       field["modmask"], field["key"], field["keycode"],
       field["description"], field["dispatcher"], field["arg"],
@@ -23,6 +58,7 @@ awk '
 
   /^bind/ {
     emit()
+    if (full) exit
     delete field
     seen = 1
     next
@@ -32,22 +68,28 @@ awk '
     field[substr($0, 2, RLENGTH - 3)] = substr($0, RLENGTH + 1)
   }
 
-  END { emit() }
+  # A truncated response ends mid-record, so the trailing record is dropped
+  # instead of being reported with partial values.
+  END { if (!truncated) emit() }
 ' "$raw_bindings" >"$records"
 
-jq -Rn '
+# Field clipping happens in jq, which counts codepoints and therefore never
+# splits a multi-byte character the way a byte-wise cut would.
+jq -Rn --argjson limit "$max_field" '
+  def clip: if length > $limit then .[0:$limit] else . end;
+
   [inputs
     | split("\u001f")
     | {
-        modmask: ((.[0] // "0") | tonumber),
-        key: (.[1] // ""),
-        keycode: ((.[2] // "0") | tonumber),
-        description: (.[3] // ""),
-        dispatcher: (.[4] // ""),
-        arg: (.[5] // ""),
+        modmask: ((.[0] // "0") | tonumber? // 0),
+        key: ((.[1] // "") | clip),
+        keycode: ((.[2] // "0") | tonumber? // 0),
+        description: ((.[3] // "") | clip),
+        dispatcher: ((.[4] // "") | clip),
+        arg: ((.[5] // "") | clip),
         release: ((.[6] // "false") == "true"),
         repeat: ((.[7] // "false") == "true"),
-        submap: (.[8] // "")
+        submap: ((.[8] // "") | clip)
       }
   ]
 ' <"$records"

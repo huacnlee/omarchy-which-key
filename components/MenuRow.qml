@@ -23,6 +23,7 @@ BorderSurface {
     spacing: Style.space(8)
 
     Text {
+      textFormat: Text.PlainText
       width: Style.space(18)
       anchors.verticalCenter: parent.verticalCenter
       horizontalAlignment: Text.AlignHCenter
@@ -33,6 +34,7 @@ BorderSurface {
     }
 
     Text {
+      textFormat: Text.PlainText
       width: parent.width - Style.space(18) - trailing.width - parent.spacing * 2
       anchors.verticalCenter: parent.verticalCenter
       text: root.text
@@ -44,6 +46,7 @@ BorderSurface {
     }
 
     Text {
+      textFormat: Text.PlainText
       id: trailing
       width: root.external ? Style.space(14) : 0
       anchors.verticalCenter: parent.verticalCenter

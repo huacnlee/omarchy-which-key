@@ -40,6 +40,7 @@ BorderSurface {
     spacing: Style.space(6)
 
     Text {
+      textFormat: Text.PlainText
       text: card.viewModel ? card.viewModel.title : ""
       color: Color.muted
       font.family: Style.font.family
@@ -65,6 +66,7 @@ BorderSurface {
           spacing: Style.space(6)
 
           Text {
+            textFormat: Text.PlainText
             Layout.preferredWidth: card.keyWidth
             text: modelData.label
             color: Color.accent
@@ -75,6 +77,7 @@ BorderSurface {
           }
 
           Text {
+            textFormat: Text.PlainText
             Layout.fillWidth: true
             Layout.preferredWidth: Style.space(190)
             text: modelData.description

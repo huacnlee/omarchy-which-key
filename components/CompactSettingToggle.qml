@@ -18,6 +18,7 @@ BorderSurface {
   borderSpec: Border.none()
 
   Text {
+    textFormat: Text.PlainText
     anchors.left: parent.left
     anchors.leftMargin: 0
     anchors.right: toggle.left

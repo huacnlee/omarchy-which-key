@@ -159,16 +159,22 @@ Item {
     if (!Model.isCurrentGeneration(generation, requestGeneration) || !superHeld)
       return
 
+    var payload = String(output || "")
+    if (Model.isPayloadTooLarge(payload)) {
+      console.warn("huacnlee.which-key: binding data is too large; ignoring it")
+      return
+    }
+
     var parsed
     try {
-      parsed = JSON.parse(String(output || ""))
+      parsed = JSON.parse(payload)
     } catch (error) {
       console.warn("huacnlee.which-key: invalid binding data:", error)
       return
     }
     if (!Array.isArray(parsed)) return
 
-    bindings = parsed
+    bindings = Model.limitBindings(parsed)
     bindingsReady = true
     rebuildModel()
     maybeReveal()

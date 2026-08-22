@@ -29,9 +29,12 @@ QtObject {
 
   function apply(raw) {
     var value = {}
+    var text = String(raw || "")
     error = ""
-    if (String(raw || "").trim()) {
-      try { value = JSON.parse(raw) }
+    if (Settings.isOversized(text)) {
+      error = "Settings file is too large; defaults are active."
+    } else if (text.trim()) {
+      try { value = JSON.parse(text) }
       catch (exception) { error = "Settings file is invalid; defaults are active." }
     }
     var normalized = Settings.normalize(value)

@@ -42,6 +42,12 @@ var XKB_KEY_LABELS = {
   133: "Super", 134: "Super", 135: "Menu"
 }
 
+// StdioCollector buffers the helper's whole response before the overlay sees
+// it, so an implausibly large payload is treated as a fault instead of being
+// parsed and retained by the long-lived shell process.
+var MAX_PAYLOAD_CHARS = 4194304
+var MAX_BINDINGS = 2000
+
 var LETTER_ROWS = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"]
 var LETTER_STARTS = [24, 38, 52]
 for (var letterRow = 0; letterRow < LETTER_ROWS.length; letterRow++)
@@ -53,6 +59,15 @@ for (var functionCode = 67; functionCode <= 76; functionCode++)
   XKB_KEY_LABELS[functionCode] = "F" + String(functionCode - 66)
 XKB_KEY_LABELS[95] = "F11"
 XKB_KEY_LABELS[96] = "F12"
+
+function isPayloadTooLarge(text) {
+  return String(text || "").length > MAX_PAYLOAD_CHARS
+}
+
+function limitBindings(bindings) {
+  var source = Array.isArray(bindings) ? bindings : []
+  return source.length > MAX_BINDINGS ? source.slice(0, MAX_BINDINGS) : source
+}
 
 function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value)
