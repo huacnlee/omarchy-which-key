@@ -24,26 +24,36 @@ grep -Fq 'mask: Region {}' WhichKey.qml
 grep -Fq 'screenName === root.focusedScreenName' WhichKey.qml
 
 test -f components/WhichKeyCard.qml
+test -f components/WhichKeyMenu.qml
+test -f components/CompactSettingToggle.qml
 test -f widget.qml
 test -f WhichKeyConfig.qml
 for script in integration-status enable-integration disable-integration; do
   test -x "scripts/$script"
 done
 grep -Fq 'BarWidget {' widget.qml
-grep -Fq '"Disable"' widget.qml
-grep -Fq '"Repair"' widget.qml
-grep -Fq '"Enable"' widget.qml
+grep -Fq 'text: "Enabled"' widget.qml
+grep -Fq 'text: "Repair..."' widget.qml
 grep -Fq 'model: config.combinations' widget.qml
-grep -Fq 'delegate: Toggle {' widget.qml
+grep -Fq 'delegate: CompactSettingToggle {' widget.qml
 grep -Fq 'https://github.com/huacnlee/omarchy-which-key' widget.qml
 grep -Fq 'https://x.com/huacnlee' widget.qml
 grep -Fq 'Qt.openUrlExternally' widget.qml
-grep -Fq 'text: "Keybindings"' widget.qml
+grep -Fq 'text: "Keybindings..."' widget.qml
 grep -Fq 'Quickshell.execDetached(["omarchy-launch-config-editor", config.configHome + "/hypr/bindings.lua"])' widget.qml
 grep -Fq 'contentWidth: panel.fittedContentWidth(Style.space(360))' widget.qml
-grep -Fq 'id: integrationButton' widget.qml
+grep -Fq 'checked: root.integrationState === "enabled"' widget.qml
 grep -Fq 'id: menuButton' widget.qml
-grep -Fq 'horizontalPadding: Style.space(8)' widget.qml
+grep -Fq 'selected: linkMenu.opened' widget.qml
+grep -Fq 'ToggleSwitch {' widget.qml
+grep -Fq 'text: "GitHub..."' widget.qml
+grep -Fq 'text: "Twitter..."' widget.qml
+grep -Fq 'MenuSeparator {' widget.qml
+grep -Fq 'WhichKeyMenu {' widget.qml
+if grep -Eq 'text: "⌨"|iconText: "⋮"|id: integrationButton' widget.qml; then
+  printf 'FAIL: widget must use system icon glyphs and a state switch\n' >&2
+  exit 1
+fi
 if grep -Eq '☑|☐' widget.qml; then
   printf 'FAIL: settings choices must use native controls, not checkbox emoji\n' >&2
   exit 1

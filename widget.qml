@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import qs.Commons
 import qs.Ui
+import "components"
 
 BarWidget {
   id: root
@@ -104,7 +105,7 @@ BarWidget {
     id: button
     anchors.fill: parent
     bar: root.bar
-    text: "⌨"
+    text: ""
     tooltipText: "Which Key settings"
     onPressed: root.toggle()
   }
@@ -145,7 +146,7 @@ BarWidget {
             fontFamily: root.fontFamily
             iconComponent: Component {
               Text {
-                text: "⌨"
+                text: ""
                 color: root.foreground
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.display
@@ -160,11 +161,28 @@ BarWidget {
                   id: headerActions
                   spacing: Style.space(6)
 
+                  Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Enabled"
+                    color: root.dim
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.bodySmall
+                    font.weight: Font.Normal
+                  }
+
+                  ToggleSwitch {
+                    anchors.verticalCenter: parent.verticalCenter
+                    checked: root.integrationState === "enabled"
+                    busy: root.actionBusy
+                    foreground: root.foreground
+                    accent: Color.accent
+                    trackHeight: Style.space(18)
+                    onToggled: root.runIntegrationAction()
+                  }
+
                   Button {
-                    id: integrationButton
-                    text: root.actionBusy ? (root.integrationState === "enabled" ? "Disabling…" : "Enabling…")
-                      : (root.integrationState === "enabled" ? "Disable"
-                        : (root.integrationState === "repair" ? "Repair" : "Enable"))
+                    visible: root.integrationState === "repair"
+                    text: "Repair..."
                     foreground: root.foreground
                     bordered: true
                     enabled: !root.actionBusy
@@ -174,66 +192,52 @@ BarWidget {
                     onClicked: root.runIntegrationAction()
                   }
 
-                  PanelActionButton {
+                  Button {
                     id: menuButton
-                    iconText: "⋮"
+                    iconText: "󰇙"
                     tooltipText: "Menu"
                     foreground: root.foreground
                     fontFamily: root.fontFamily
                     focusable: true
+                    selected: linkMenu.opened
+                    horizontalPadding: Style.space(6)
+                    verticalPadding: Style.space(4)
                     onClicked: linkMenu.opened ? linkMenu.close() : linkMenu.open()
                   }
                 }
 
-                Popup {
+                WhichKeyMenu {
                   id: linkMenu
-                  x: parent.width - width
-                  y: parent.height + Style.space(4)
-                  width: Style.space(190)
-                  padding: Style.space(6)
-                  modal: false
-                  focus: true
-                  closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-                  background: BorderSurface {
-                    color: Color.popups.background
-                    borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border,
-                                                   Math.max(1, Style.space(1)))
-                    radius: Style.cornerRadius
+                  anchorItem: menuButton
+
+                  MenuRow {
+                    iconText: ""
+                    text: "Keybindings..."
+                    onActivated: {
+                      linkMenu.close()
+                      Quickshell.execDetached(["omarchy-launch-config-editor", config.configHome + "/hypr/bindings.lua"])
+                    }
                   }
-                  contentItem: Column {
-                    spacing: Style.space(2)
 
-                    Button {
-                      width: parent.width
-                      text: "Keybindings"
-                      leftAlign: true
-                      foreground: Color.popups.text
-                      onClicked: {
-                        linkMenu.close()
-                        Quickshell.execDetached(["omarchy-launch-config-editor", config.configHome + "/hypr/bindings.lua"])
-                      }
+                  MenuSeparator { width: parent.width }
+
+                  MenuRow {
+                    iconText: ""
+                    text: "GitHub..."
+                    external: true
+                    onActivated: {
+                      linkMenu.close()
+                      Qt.openUrlExternally("https://github.com/huacnlee/omarchy-which-key")
                     }
+                  }
 
-                    Button {
-                      width: parent.width
-                      text: "GitHub"
-                      leftAlign: true
-                      foreground: Color.popups.text
-                      onClicked: {
-                        linkMenu.close()
-                        Qt.openUrlExternally("https://github.com/huacnlee/omarchy-which-key")
-                      }
-                    }
-
-                    Button {
-                      width: parent.width
-                      text: "Twitter"
-                      leftAlign: true
-                      foreground: Color.popups.text
-                      onClicked: {
-                        linkMenu.close()
-                        Qt.openUrlExternally("https://x.com/huacnlee")
-                      }
+                  MenuRow {
+                    iconText: ""
+                    text: "Twitter..."
+                    external: true
+                    onActivated: {
+                      linkMenu.close()
+                      Qt.openUrlExternally("https://x.com/huacnlee")
                     }
                   }
                 }
@@ -296,13 +300,13 @@ BarWidget {
 
             Repeater {
               model: config.combinations
-              delegate: Toggle {
+              delegate: CompactSettingToggle {
                 required property var modelData
                 width: parent.width
                 label: modelData.label
                 checked: config.maskEnabled(modelData.mask)
                 foreground: root.foreground
-                onClicked: config.setMask(modelData.mask, !config.maskEnabled(modelData.mask))
+                onToggled: config.setMask(modelData.mask, !config.maskEnabled(modelData.mask))
               }
             }
           }
