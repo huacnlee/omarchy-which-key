@@ -21,8 +21,8 @@ Popup {
     if (!opened || !anchorItem || !boundaryItem || !parent) return
     var point = anchorItem.mapToItem(parent, 0, 0)
     var boundary = boundaryItem.mapToItem(parent, 0, 0)
-    var left = boundary.x + gap
-    var right = boundary.x + boundaryItem.width - gap
+    var left = boundary.x
+    var right = boundary.x + boundaryItem.width
     var top = boundary.y + gap
     var bottom = boundary.y + boundaryItem.height - gap
     var preferredX = point.x + anchorItem.width - width

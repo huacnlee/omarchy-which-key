@@ -192,17 +192,24 @@ BarWidget {
                     onClicked: root.runIntegrationAction()
                   }
 
-                  Button {
-                    id: menuButton
-                    iconText: "󰇙"
-                    tooltipText: "Menu"
-                    foreground: root.foreground
-                    fontFamily: root.fontFamily
-                    focusable: true
-                    selected: linkMenu.opened
-                    horizontalPadding: Style.space(6)
-                    verticalPadding: Style.space(4)
-                    onClicked: linkMenu.opened ? linkMenu.close() : linkMenu.open()
+                  Item {
+                    implicitWidth: Style.space(24)
+                    implicitHeight: Style.space(24)
+
+                    Button {
+                      id: menuButton
+                      anchors.fill: parent
+                      text: "⋮"
+                      tooltipText: "Menu"
+                      foreground: root.foreground
+                      fontFamily: root.fontFamily
+                      focusable: true
+                      bordered: false
+                      selected: linkMenu.opened
+                      horizontalPadding: 0
+                      verticalPadding: 0
+                      onClicked: linkMenu.opened ? linkMenu.close() : linkMenu.open()
+                    }
                   }
                 }
 

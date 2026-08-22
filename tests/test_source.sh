@@ -47,7 +47,12 @@ grep -Fq 'Quickshell.execDetached(["omarchy-launch-config-editor", config.config
 grep -Fq 'contentWidth: panel.fittedContentWidth(Style.space(360))' widget.qml
 grep -Fq 'checked: root.integrationState === "enabled"' widget.qml
 grep -Fq 'id: menuButton' widget.qml
+grep -Fq 'implicitWidth: Style.space(24)' widget.qml
+grep -Fq 'implicitHeight: Style.space(24)' widget.qml
+grep -Fq 'text: "⋮"' widget.qml
+grep -Fq 'anchors.fill: parent' widget.qml
 grep -Fq 'selected: linkMenu.opened' widget.qml
+grep -Fq 'var right = boundary.x + boundaryItem.width' components/WhichKeyMenu.qml
 grep -Fq 'ToggleSwitch {' widget.qml
 grep -Fq 'text: "GitHub..."' widget.qml
 grep -Fq 'text: "Twitter..."' widget.qml
