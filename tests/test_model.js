@@ -14,6 +14,7 @@ const bindings = [
   { modmask: 68, key: "E", keycode: 0, description: "Emoji" },
   { modmask: 72, key: "mouse:272", keycode: 272, description: "Move window" },
   { modmask: 65, key: "code:20", keycode: 20, description: "Resize left" },
+  { modmask: 64, key: "SUPER + code:10", keycode: 0, description: "Workspace 1" },
   null,
   "bad row"
 ]
@@ -26,10 +27,12 @@ assert.strictEqual(shifted.rows[3].label, "code:20")
 assert.strictEqual(shifted.rows[3].special, true)
 
 const superOnly = Model.buildRows(bindings, 64)
-assert.deepStrictEqual(Array.from(superOnly.rows, row => row.key), ["W", "B", "B"])
+assert.deepStrictEqual(Array.from(superOnly.rows, row => row.key), ["W", "B", "B", "code:10"])
 assert.strictEqual(superOnly.rows[0].duplicate, false)
 assert.strictEqual(superOnly.rows[1].duplicate, true)
 assert.strictEqual(superOnly.rows[2].duplicate, true)
+assert.strictEqual(superOnly.rows[3].label, "code:10")
+assert.strictEqual(superOnly.rows[3].key.includes("SUPER"), false)
 assert.strictEqual(superOnly.rows.some(row => row.key === "Q"), false)
 
 const ctrl = Model.buildRows(bindings, 68)

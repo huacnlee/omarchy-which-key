@@ -72,6 +72,16 @@ function keyLabel(key, keycode) {
   return raw
 }
 
+function triggerKey(key) {
+  var value = String(key || "").trim()
+  var previous
+  do {
+    previous = value
+    value = value.replace(/^(SUPER|SHIFT|CTRL|CONTROL|ALT)\s*\+\s*/i, "")
+  } while (value !== previous)
+  return value.trim()
+}
+
 function isSpecialKey(key) {
   return !/^[A-Za-z0-9]$/.test(String(key || ""))
 }
@@ -109,7 +119,7 @@ function buildRows(bindings, modifierMask, options) {
     if (!isRecord(binding) || Number(binding.modmask) !== numericMask) continue
 
     var description = String(binding.description || "").trim()
-    var key = String(binding.key || "").trim()
+    var key = triggerKey(binding.key)
     var label = keyLabel(key, binding.keycode)
     if (!description || !key || !label) continue
 
