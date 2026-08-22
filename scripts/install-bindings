@@ -6,6 +6,8 @@ begin_marker='-- omarchy-which-key:begin'
 end_marker='-- omarchy-which-key:end'
 config="${OMARCHY_WHICH_KEY_HYPR_CONFIG:-${HOME}/.config/hypr/bindings.lua}"
 config_dir="$(dirname "$config")"
+state_file="${config}.omarchy-which-key.state"
+backup_file="${config}.omarchy-which-key.original"
 xkbcli_command="${OMARCHY_WHICH_KEY_XKBCLI:-xkbcli}"
 hyprctl_command="${OMARCHY_WHICH_KEY_HYPRCTL:-hyprctl}"
 
@@ -16,12 +18,18 @@ fi
 
 mkdir -p "$config_dir"
 if [[ ! -e "$config" ]]; then
+  printf '%s\n' absent >"$state_file"
   : >"$config"
+elif [[ ! -e "$state_file" ]]; then
+  if [[ -s "$config" ]] && [[ "$(tail -c 1 -- "$config" | wc -l)" -eq 0 ]]; then
+    printf '%s\n' no-final-newline >"$state_file"
+  else
+    printf '%s\n' final-newline >"$state_file"
+  fi
 fi
 
 if ! grep -Fqx -- "$begin_marker" "$config"; then
-  backup="${config}.bak.$(date +%s%N)"
-  cp -p -- "$config" "$backup"
+  cp -p -- "$config" "$backup_file"
 fi
 
 temporary="$(mktemp "${config}.tmp.XXXXXX")"

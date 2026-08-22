@@ -1,0 +1,25 @@
+#!/bin/bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+config="${OMARCHY_WHICH_KEY_HYPR_CONFIG:-${HOME}/.config/hypr/bindings.lua}"
+link="${HOME}/.local/bin/which-key-trigger"
+target="$repo_root/scripts/which-key-trigger"
+
+hook=0
+launcher=0
+if [[ -f "$config" ]]; then
+  begin_count="$(grep -Fxc -- '-- omarchy-which-key:begin' "$config" || true)"
+  end_count="$(grep -Fxc -- '-- omarchy-which-key:end' "$config" || true)"
+  if [[ "$begin_count" == 1 && "$end_count" == 1 ]]; then
+    begin_line="$(grep -Fn -- '-- omarchy-which-key:begin' "$config" | cut -d: -f1)"
+    end_line="$(grep -Fn -- '-- omarchy-which-key:end' "$config" | cut -d: -f1)"
+    (( begin_line < end_line )) && hook=1
+  fi
+fi
+[[ -L "$link" && "$(readlink "$link")" == "$target" ]] && launcher=1
+
+if (( hook && launcher )); then printf 'enabled\n'
+elif (( !hook && !launcher )); then printf 'disabled\n'
+else printf 'repair\n'
+fi

@@ -97,8 +97,9 @@ OMARCHY_WHICH_KEY_HYPR_CONFIG="$config" "$repo_root/scripts/install-bindings"
 
 assert_equal "1" "$(grep -c '^-- omarchy-which-key:begin$' "$config")" \
   "installer should add one owned block"
-assert_equal "1" "$(find "$test_root" -maxdepth 1 -name 'bindings.lua.bak.*' | wc -l)" \
-  "first install should create one backup"
+test -f "${config}.omarchy-which-key.original"
+assert_equal "final-newline" "$(<"${config}.omarchy-which-key.state")" \
+  "first install should record the original file shape"
 assert_equal "640" "$(stat -c '%a' "$config")" \
   "installer should preserve config mode"
 assert_file_contains "$config" 'hl.on("input.keyboard.key"' \
@@ -132,8 +133,7 @@ OMARCHY_WHICH_KEY_HYPR_CONFIG="$config" "$repo_root/scripts/install-bindings"
 
 assert_equal "1" "$(grep -c '^-- omarchy-which-key:begin$' "$config")" \
   "reinstall should replace rather than duplicate the block"
-assert_equal "1" "$(find "$test_root" -maxdepth 1 -name 'bindings.lua.bak.*' | wc -l)" \
-  "reinstall should not create another backup"
+test -f "${config}.omarchy-which-key.original"
 
 OMARCHY_WHICH_KEY_SHELL="$fake_shell" \
 OMARCHY_WHICH_KEY_TEST_LOG="$shell_log" \
@@ -158,6 +158,8 @@ fi
 OMARCHY_WHICH_KEY_HYPR_CONFIG="$config" "$repo_root/scripts/uninstall-bindings"
 assert_equal "$original_contents" "$(<"$config")" \
   "uninstall should restore original config exactly"
+test ! -e "${config}.omarchy-which-key.original"
+test ! -e "${config}.omarchy-which-key.state"
 
 OMARCHY_WHICH_KEY_HYPR_CONFIG="$config" "$repo_root/scripts/uninstall-bindings"
 assert_equal "$original_contents" "$(<"$config")" \

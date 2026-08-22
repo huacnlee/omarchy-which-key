@@ -1,0 +1,12 @@
+#!/bin/bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+hyprctl_command="${OMARCHY_WHICH_KEY_HYPRCTL:-hyprctl}"
+link="${HOME}/.local/bin/which-key-trigger"
+target="$repo_root/scripts/which-key-trigger"
+
+"$repo_root/scripts/uninstall-bindings"
+if [[ -L "$link" && "$(readlink "$link")" == "$target" ]]; then rm -- "$link"; fi
+"$hyprctl_command" reload
+printf 'disabled\n'

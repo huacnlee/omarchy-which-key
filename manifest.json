@@ -7,10 +7,19 @@
   "license": "MIT",
   "description": "A LazyVim which-key-style shortcut guide that automatically reads Omarchy live keybindings and appears when you hold Super",
   "kinds": [
-    "overlay"
+    "overlay",
+    "bar-widget"
   ],
   "keepLoaded": true,
   "entryPoints": {
-    "overlay": "WhichKey.qml"
+    "overlay": "WhichKey.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Which Key",
+    "description": "Configure and enable the LazyVim-style shortcut guide.",
+    "category": "System",
+    "allowMultiple": false,
+    "defaultSection": "right"
   }
 }

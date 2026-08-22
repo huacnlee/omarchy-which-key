@@ -65,6 +65,7 @@ export OMARCHY_WHICH_KEY_TEST_PLUGIN_DIR="$test_root/plugin"
 export OMARCHY_WHICH_KEY_LIFECYCLE_LOG="$test_root/lifecycle.log"
 
 "$test_root/plugin/install.sh"
+test "$("$test_root/plugin/scripts/integration-status")" = "enabled"
 if grep -Fq 'omarchy plugin add' "$OMARCHY_WHICH_KEY_LIFECYCLE_LOG"; then
   printf 'FAIL: installed plugin must not add itself again\n' >&2
   exit 1
@@ -77,5 +78,22 @@ grep -Fq -- '-- omarchy-which-key:begin' "$HOME/.config/hypr/bindings.lua"
 grep -Fq 'omarchy plugin remove huacnlee.which-key --yes' "$OMARCHY_WHICH_KEY_LIFECYCLE_LOG"
 test ! -e "$HOME/.local/bin/which-key-trigger"
 test "$(cat "$HOME/.config/hypr/bindings.lua")" = '-- existing'
+test ! -e "$HOME/.config/hypr/bindings.lua.omarchy-which-key.state"
+test ! -e "$HOME/.config/hypr/bindings.lua.omarchy-which-key.original"
+
+printf '%s' '-- without newline' >"$HOME/.config/hypr/bindings.lua"
+"$test_root/plugin/scripts/enable-integration"
+"$test_root/plugin/scripts/disable-integration"
+test "$(cat "$HOME/.config/hypr/bindings.lua")" = '-- without newline'
+test "$(tail -c 1 "$HOME/.config/hypr/bindings.lua" | wc -l)" -eq 0
+
+rm "$HOME/.config/hypr/bindings.lua"
+"$test_root/plugin/scripts/enable-integration"
+"$test_root/plugin/scripts/disable-integration"
+test ! -e "$HOME/.config/hypr/bindings.lua"
+
+printf '%s\n' '-- omarchy-which-key:begin' >"$HOME/.config/hypr/bindings.lua"
+ln -s "$test_root/plugin/scripts/which-key-trigger" "$HOME/.local/bin/which-key-trigger"
+test "$("$test_root/plugin/scripts/integration-status")" = "repair"
 
 printf 'lifecycle tests passed\n'

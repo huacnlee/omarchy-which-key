@@ -1,0 +1,22 @@
+#!/bin/bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+hyprctl_command="${OMARCHY_WHICH_KEY_HYPRCTL:-hyprctl}"
+bin_dir="${HOME}/.local/bin"
+link="$bin_dir/which-key-trigger"
+target="$repo_root/scripts/which-key-trigger"
+
+mkdir -p "$bin_dir"
+if [[ -e "$link" || -L "$link" ]]; then
+  if [[ ! -L "$link" || "$(readlink "$link")" != "$target" ]]; then
+    printf 'enable-integration: refusing to replace %s\n' "$link" >&2
+    exit 73
+  fi
+fi
+ln -sfn -- "$target" "$link"
+"$repo_root/scripts/install-bindings"
+"$hyprctl_command" reload
+errors="$($hyprctl_command configerrors)"
+[[ -z "$errors" ]] || { printf '%s\n' "$errors" >&2; exit 65; }
+printf 'enabled\n'

@@ -8,13 +8,14 @@ cd "$repo_root"
 jq -e '
   .schemaVersion == 1
   and .id == "huacnlee.which-key"
-  and .kinds == ["overlay"]
+  and .kinds == ["overlay", "bar-widget"]
   and .keepLoaded == true
   and .entryPoints.overlay == "WhichKey.qml"
 ' manifest.json >/dev/null
+jq -e '.kinds == ["overlay", "bar-widget"] and .entryPoints.barWidget == "BarWidget.qml" and .barWidget.defaultSection == "right"' manifest.json >/dev/null
 jq -e '.description == "A LazyVim which-key-style shortcut guide that automatically reads Omarchy live keybindings and appears when you hold Super"' manifest.json >/dev/null
 
-grep -Fq 'interval: 200' WhichKey.qml
+grep -Fq 'interval: config.delayMs' WhichKey.qml
 grep -Fq 'target: "huacnlee.which-key"' WhichKey.qml
 grep -Fq 'model: Quickshell.screens' WhichKey.qml
 grep -Fq 'WlrLayershell.keyboardFocus: WlrKeyboardFocus.None' WhichKey.qml
@@ -23,6 +24,17 @@ grep -Fq 'mask: Region {}' WhichKey.qml
 grep -Fq 'screenName === root.focusedScreenName' WhichKey.qml
 
 test -f components/WhichKeyCard.qml
+test -f BarWidget.qml
+test -f WhichKeyConfig.qml
+for script in integration-status enable-integration disable-integration; do
+  test -x "scripts/$script"
+done
+grep -Fq '"Disable"' BarWidget.qml
+grep -Fq '"Repair"' BarWidget.qml
+grep -Fq '"Enable"' BarWidget.qml
+grep -Fq 'model: config.combinations' BarWidget.qml
+grep -Fq 'interval: config.delayMs' WhichKey.qml
+grep -Fq 'config.maskEnabled(modifierMask)' WhichKey.qml
 grep -Fq 'Color.popups.background' components/WhichKeyCard.qml
 grep -Fq 'Color.popups.border' components/WhichKeyCard.qml
 grep -Fq 'Style.cornerRadius' components/WhichKeyCard.qml

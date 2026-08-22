@@ -26,6 +26,12 @@ Item {
   property int lastEventSequence: 0
   property bool consumed: false
 
+  WhichKeyConfig { id: config }
+  Connections {
+    target: config
+    function onEnabledMasksChanged() { root.maybeReveal() }
+  }
+
   readonly property string sourceDir: manifest && manifest.__sourceDir
     ? String(manifest.__sourceDir) : ""
   readonly property bool superHeld: heldSuperKeys.super_l === true
@@ -125,7 +131,7 @@ Item {
   }
 
   function maybeReveal() {
-    opened = revealDue && superHeld && !consumed && bindingsReady
+    opened = revealDue && superHeld && !consumed && config.maskEnabled(modifierMask) && bindingsReady
       && viewModel && viewModel.rows && viewModel.rows.length > 0
   }
 
@@ -170,7 +176,7 @@ Item {
 
   Timer {
     id: revealTimer
-    interval: 200
+    interval: config.delayMs
     repeat: false
     onTriggered: {
       root.revealDue = true

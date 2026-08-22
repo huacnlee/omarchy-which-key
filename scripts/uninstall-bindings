@@ -5,6 +5,8 @@ set -euo pipefail
 begin_marker='-- omarchy-which-key:begin'
 end_marker='-- omarchy-which-key:end'
 config="${OMARCHY_WHICH_KEY_HYPR_CONFIG:-${HOME}/.config/hypr/bindings.lua}"
+state_file="${config}.omarchy-which-key.state"
+backup_file="${config}.omarchy-which-key.original"
 
 if [[ -L "$config" ]]; then
   printf 'uninstall-bindings: refusing to replace symlinked config: %s\n' "$config" >&2
@@ -32,4 +34,26 @@ awk -v begin="$begin_marker" -v end="$end_marker" '
 
 chmod --reference="$config" "$temporary"
 mv -f -- "$temporary" "$config"
+
+if [[ -f "$state_file" ]]; then
+  initial_state="$(cat -- "$state_file")"
+  case "$initial_state" in
+    absent)
+      if [[ ! -s "$config" ]]; then
+        rm -f -- "$config"
+      fi
+      ;;
+    no-final-newline)
+      if [[ -s "$config" ]] && [[ "$(tail -c 1 -- "$config" | wc -l)" -eq 1 ]]; then
+        truncate -s -1 -- "$config"
+      fi
+      ;;
+    final-newline) ;;
+    *)
+      printf 'uninstall-bindings: invalid state file: %s\n' "$state_file" >&2
+      exit 65
+      ;;
+  esac
+  rm -f -- "$state_file" "$backup_file"
+fi
 trap - EXIT
