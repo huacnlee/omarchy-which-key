@@ -29,7 +29,7 @@ The full-screen layer has an empty input region and requests no keyboard focus.
 
 Hold a key mapped to Super for at least 200 ms. While it remains held, add Shift,
 Ctrl, or Alt to switch to that exact modifier combination. The compact guide
-shows at most ten results in one column. Release Super to close immediately.
+shows at most twenty results in one column. Release Super to close immediately.
 A quick Super tap does not open the guide.
 
 ## Uninstall

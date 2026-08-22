@@ -37,11 +37,13 @@ done
 grep -Fqi 'no built-in shortcut' README.md
 grep -Fq 'function state(sequence: int, mask: int)' WhichKey.qml
 grep -Fq 'nextSequence <= lastEventSequence' WhichKey.qml
-grep -Fq 'viewModel.rows.slice(0, 10)' components/WhichKeyCard.qml
+grep -Fq 'viewModel.rows.slice(0, 20)' components/WhichKeyCard.qml
 grep -Fq 'readonly property int pad: Style.space(10)' components/WhichKeyCard.qml
 grep -Fq 'readonly property int rowGap: Style.space(4)' components/WhichKeyCard.qml
-grep -Fq 'availableWidth, Style.space(300)' components/WhichKeyCard.qml
-grep -Fq 'color: Color.primary' components/WhichKeyCard.qml
+grep -Fq 'availableWidth, Style.space(380)' components/WhichKeyCard.qml
+grep -Fq 'color: Color.accent' components/WhichKeyCard.qml
+grep -Fq 'text: "Backspace"' components/WhichKeyCard.qml
+grep -Fq 'Math.ceil(keyMetrics.advanceWidth)' components/WhichKeyCard.qml
 test "$(grep -Fc 'color: Color.muted' components/WhichKeyCard.qml)" -eq 1
 if grep -Eq '#[0-9A-Fa-f]{3,8}|Qt\.rgba?\(|color:[[:space:]]*"[^"]+"' components/WhichKeyCard.qml; then
   printf 'FAIL: visible card colors must use Omarchy system color tokens\n' >&2

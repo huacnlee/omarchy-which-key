@@ -9,18 +9,26 @@ BorderSurface {
   required property var viewModel
   required property real availableWidth
   readonly property var visibleRows: viewModel && viewModel.rows
-    ? viewModel.rows.slice(0, 10) : []
+    ? viewModel.rows.slice(0, 20) : []
   readonly property int pad: Style.space(10)
   readonly property int rowGap: Style.space(4)
-  readonly property int keyWidth: Style.space(44)
+  readonly property int keyWidth: Math.ceil(keyMetrics.advanceWidth)
 
   width: Math.min(content.implicitWidth + borderLeft + pad * 2 + borderRight,
-                  availableWidth, Style.space(300))
+                  availableWidth, Style.space(380))
   height: content.implicitHeight + borderTop + pad * 2 + borderBottom
   color: Color.popups.background
   borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border,
                                  Math.max(1, Style.space(1)))
   radius: Style.cornerRadius
+
+  TextMetrics {
+    id: keyMetrics
+    text: "Backspace"
+    font.family: Style.font.family
+    font.pixelSize: Style.font.body
+    font.bold: true
+  }
 
   ColumnLayout {
     id: content
@@ -59,10 +67,11 @@ BorderSurface {
           Text {
             Layout.preferredWidth: card.keyWidth
             text: modelData.label
-            color: Color.primary
+            color: Color.accent
             font.family: Style.font.family
             font.pixelSize: Style.font.body
             font.bold: true
+            elide: Text.ElideRight
           }
 
           Text {
