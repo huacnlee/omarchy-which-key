@@ -13,7 +13,7 @@
   "keepLoaded": true,
   "entryPoints": {
     "overlay": "WhichKey.qml",
-    "barWidget": "BarWidget.qml"
+    "barWidget": "WhichKeyWidget.qml"
   },
   "barWidget": {
     "displayName": "Which Key",

@@ -25,6 +25,35 @@ var KEY_LABELS = {
   PAGEDOWN: "Page Down"
 }
 
+// Hyprland exposes physical-code bindings as XKB keycodes (evdev code + 8).
+// Convert the standard keyboard range so the guide never leaks `code:NN`.
+var XKB_KEY_LABELS = {
+  9: "Esc", 20: "-", 21: "=", 22: "Backspace", 23: "Tab",
+  34: "[", 35: "]", 36: "Enter", 37: "Ctrl", 47: ";", 48: "'",
+  49: "`", 50: "Shift", 51: "\\", 59: ",", 60: ".", 61: "/",
+  62: "Shift", 63: "Num *", 64: "Alt", 65: "Space", 66: "Caps Lock",
+  77: "Num Lock", 78: "Scroll Lock", 79: "Num 7", 80: "Num 8",
+  81: "Num 9", 82: "Num -", 83: "Num 4", 84: "Num 5", 85: "Num 6",
+  86: "Num +", 87: "Num 1", 88: "Num 2", 89: "Num 3", 90: "Num 0",
+  91: "Num .", 104: "Num Enter", 105: "Ctrl", 106: "Num /",
+  107: "Print Screen", 108: "Alt", 110: "Home", 111: "↑",
+  112: "Page Up", 113: "←", 114: "→", 115: "End", 116: "↓",
+  117: "Page Down", 118: "Insert", 119: "Delete", 127: "Pause",
+  133: "Super", 134: "Super", 135: "Menu"
+}
+
+var LETTER_ROWS = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"]
+var LETTER_STARTS = [24, 38, 52]
+for (var letterRow = 0; letterRow < LETTER_ROWS.length; letterRow++)
+  for (var letterIndex = 0; letterIndex < LETTER_ROWS[letterRow].length; letterIndex++)
+    XKB_KEY_LABELS[LETTER_STARTS[letterRow] + letterIndex] = LETTER_ROWS[letterRow][letterIndex]
+for (var numberCode = 10; numberCode <= 19; numberCode++)
+  XKB_KEY_LABELS[numberCode] = numberCode === 19 ? "0" : String(numberCode - 9)
+for (var functionCode = 67; functionCode <= 76; functionCode++)
+  XKB_KEY_LABELS[functionCode] = "F" + String(functionCode - 66)
+XKB_KEY_LABELS[95] = "F11"
+XKB_KEY_LABELS[96] = "F12"
+
 function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value)
 }
@@ -63,10 +92,10 @@ function keyLabel(key, keycode) {
   var upper = raw.toUpperCase()
   if (KEY_LABELS[upper]) return KEY_LABELS[upper]
 
-  var numberRow = /^code:(1[0-9])$/i.exec(raw)
-  if (numberRow) {
-    var numberKey = Number(numberRow[1])
-    return numberKey === 19 ? "0" : String(numberKey - 9)
+  var codeMatch = /^code:(\d+)$/i.exec(raw)
+  if (codeMatch) {
+    var code = Number(codeMatch[1])
+    return XKB_KEY_LABELS[code] || "Key " + code
   }
 
   var mouseMatch = /^mouse:(\d+)$/i.exec(raw)
