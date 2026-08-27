@@ -25,7 +25,7 @@ BarWidget {
   property string actionError: ""
   property bool actionBusy: false
 
-  WhichKeyConfig { id: config }
+  WhichKeyConfig { id: config; sourceDir: root.sourceDir }
   PanelController { id: panelController }
 
   function localPath(url) {
@@ -66,7 +66,7 @@ BarWidget {
 
   onOpenedChanged: if (opened) {
     refreshStatus()
-    config.settingsFile.reload()
+    config.reload()
   }
   Component.onCompleted: refreshStatus()
 

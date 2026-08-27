@@ -1,0 +1,106 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# The settings file is user writable, so whatever sits at that path must never
+# decide how much the long-lived shell reads or where the read goes. Both jobs
+# happen here, in a short-lived process: the file is opened through a single
+# descriptor that refuses to follow a symlink, never blocks on a FIFO, and stops
+# at a fixed byte ceiling, so the overlay only ever receives a bounded document.
+max_bytes="${OMARCHY_WHICH_KEY_SETTINGS_MAX_BYTES:-65536}"
+
+case "$max_bytes" in
+  "" | *[!0-9]* | 0)
+    printf 'which-key: OMARCHY_WHICH_KEY_SETTINGS_MAX_BYTES must be a positive integer\n' >&2
+    exit 2
+    ;;
+esac
+
+config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+settings_path="${OMARCHY_WHICH_KEY_SETTINGS:-$config_home/omarchy/which-key.json}"
+
+usage() {
+  printf 'usage: which-key-settings read\n       which-key-settings write <delay-ms> <mask,...>\n' >&2
+  exit 2
+}
+
+read_settings() {
+  # A fresh install has no settings file. That is the default case, not a
+  # failure: the overlay keeps its defaults when it receives nothing.
+  [ -e "$settings_path" ] || [ -L "$settings_path" ] || return 0
+
+  if [ -L "$settings_path" ] || [ ! -f "$settings_path" ]; then
+    printf 'which-key: %s is not a regular file\n' "$settings_path" >&2
+    return 3
+  fi
+
+  local buffer
+  buffer="$(mktemp)"
+  trap 'rm -f -- "$buffer"' RETURN
+
+  # nofollow rejects a symlink swapped in after the check above, nonblock keeps
+  # a FIFO from stalling the read, and count_bytes stops one byte past the
+  # ceiling so a file that exactly fills it is still readable.
+  if ! dd if="$settings_path" iflag=nofollow,nonblock,count_bytes \
+    count="$((max_bytes + 1))" status=none >"$buffer" 2>/dev/null; then
+    printf 'which-key: cannot read %s\n' "$settings_path" >&2
+    return 3
+  fi
+
+  # An overrun is refused rather than truncated: half a JSON document is not
+  # settings, and reporting it as unreadable is the honest outcome.
+  if [ "$(wc -c <"$buffer")" -gt "$max_bytes" ]; then
+    printf 'which-key: %s is larger than %s bytes\n' "$settings_path" "$max_bytes" >&2
+    return 4
+  fi
+
+  cat -- "$buffer"
+}
+
+write_settings() {
+  local delay="${1-}" masks="${2-}"
+
+  case "$delay" in
+    "" | *[!0-9]*)
+      printf 'which-key: delay must be a positive integer\n' >&2
+      return 2
+      ;;
+  esac
+  case "$masks" in
+    *[!0-9,]*)
+      printf 'which-key: masks must be a comma separated list of integers\n' >&2
+      return 2
+      ;;
+  esac
+
+  local directory
+  directory="$(dirname -- "$settings_path")"
+  mkdir -p -- "$directory"
+
+  local staged
+  staged="$(mktemp "$directory/.which-key.json.XXXXXX")"
+  trap 'rm -f -- "$staged"' RETURN
+
+  jq -n --argjson delay "$delay" --arg masks "$masks" '{
+    version: 1,
+    delayMs: $delay,
+    enabledMasks: ($masks | if . == "" then [] else split(",") | map(tonumber) end)
+  }' >"$staged"
+
+  chmod 0644 -- "$staged"
+  mv -f -- "$staged" "$settings_path"
+}
+
+case "${1-}" in
+  read)
+    [ "$#" -eq 1 ] || usage
+    read_settings
+    ;;
+  write)
+    [ "$#" -eq 3 ] || usage
+    write_settings "$2" "$3"
+    ;;
+  *)
+    usage
+    ;;
+esac

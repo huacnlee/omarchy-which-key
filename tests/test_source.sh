@@ -154,6 +154,22 @@ grep -Fq 'Model.isPayloadTooLarge' WhichKey.qml
 grep -Fq 'Model.limitBindings' WhichKey.qml
 grep -Fq 'Settings.isOversized' WhichKeyConfig.qml
 
+# The user-writable settings file is read by a helper, never opened by the
+# long-lived shell: FileView follows symlinks, blocks on a FIFO, and has no
+# size ceiling of its own.
+test -x scripts/which-key-settings
+grep -Fq 'iflag=nofollow,nonblock,count_bytes' scripts/which-key-settings
+grep -Fq 'OMARCHY_WHICH_KEY_SETTINGS_MAX_BYTES' scripts/which-key-settings
+grep -Fq 'scripts/which-key-settings' WhichKeyConfig.qml
+grep -Fq 'sourceDir: root.sourceDir' WhichKey.qml
+grep -Fq 'sourceDir: root.sourceDir' widget.qml
+grep -Fq 'config.reload()' WhichKey.qml
+grep -Fq 'config.reload()' widget.qml
+if grep -Fq 'FileView' WhichKeyConfig.qml; then
+  printf 'FAIL: the settings file must not be opened by the long-lived shell\n' >&2
+  exit 1
+fi
+
 grep -Fq 'scripts/which-key-bindings' WhichKey.qml
 grep -Fq 'loadGeneration' WhichKey.qml
 grep -Fq 'Model.isCurrentGeneration' WhichKey.qml

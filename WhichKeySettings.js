@@ -2,8 +2,9 @@
 
 var DEFAULT_MASKS = [64, 65, 68, 72, 69, 73, 76, 77]
 
-// FileView hands over the settings file in one piece, so anything far past a
-// plausible settings document is rejected before it is parsed or kept.
+// The helper already refuses anything past its byte ceiling, so this is the
+// second half of the same contract: whatever reaches the shell is checked again
+// before it is parsed or kept, however it arrived.
 var MAX_SETTINGS_CHARS = 65536
 
 function isOversized(raw) {

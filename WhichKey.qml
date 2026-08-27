@@ -26,7 +26,7 @@ Item {
   property int lastEventSequence: 0
   property bool consumed: false
 
-  WhichKeyConfig { id: config }
+  WhichKeyConfig { id: config; sourceDir: root.sourceDir }
   Connections {
     target: config
     function onEnabledMasksChanged() { root.maybeReveal() }
@@ -70,6 +70,9 @@ Item {
     bindings = []
     rebuildModel()
     revealTimer.restart()
+    // The bar widget owns a separate config instance and the file is no longer
+    // watched, so the guide re-reads its settings as each chord starts.
+    config.reload()
     requestBindings(generation)
   }
 

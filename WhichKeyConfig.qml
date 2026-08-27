@@ -6,16 +6,29 @@ import "WhichKeySettings.js" as Settings
 QtObject {
   id: root
 
+  property string sourceDir: ""
   property int delayMs: 200
   property var enabledMasks: Settings.DEFAULT_MASKS.slice()
   property bool loaded: false
   property string error: ""
+
+  // A write always describes state the shell already holds, so a read that
+  // started before it must not be allowed to restore the previous document.
+  property int writeSerial: 0
+  property bool writePending: false
 
   readonly property string configHome: {
     var configured = Quickshell.env("XDG_CONFIG_HOME")
     return configured ? String(configured) : Quickshell.env("HOME") + "/.config"
   }
   readonly property string path: configHome + "/omarchy/which-key.json"
+
+  // The settings file is user writable, so it is never opened from this
+  // long-lived process. The helper reads it through a no-follow, nonblocking
+  // descriptor and stops at a byte ceiling, so what arrives here is bounded.
+  readonly property string helper: sourceDir
+    ? sourceDir + "/scripts/which-key-settings" : ""
+
   readonly property var combinations: [
     { mask: 64, label: "SUPER" },
     { mask: 65, label: "SUPER + SHIFT" },
@@ -26,6 +39,14 @@ QtObject {
     { mask: 76, label: "SUPER + CTRL + ALT" },
     { mask: 77, label: "SUPER + SHIFT + CTRL + ALT" }
   ]
+
+  function reload() {
+    if (!helper || readProcess.running || writeProcess.running || writePending)
+      return
+    readProcess.startSerial = writeSerial
+    readProcess.command = [helper, "read"]
+    readProcess.running = true
+  }
 
   function apply(raw) {
     var value = {}
@@ -44,11 +65,21 @@ QtObject {
   }
 
   function save() {
-    settingsFile.setText(JSON.stringify({
-      version: 1,
-      delayMs: delayMs,
-      enabledMasks: enabledMasks
-    }, null, 2) + "\n")
+    if (!helper) {
+      error = "Settings cannot be saved; the plugin directory is unavailable."
+      return
+    }
+    writeSerial += 1
+    if (writeProcess.running) {
+      writePending = true
+      return
+    }
+    startWrite()
+  }
+
+  function startWrite() {
+    writeProcess.command = [helper, "write", String(delayMs), enabledMasks.join(",")]
+    writeProcess.running = true
   }
 
   function setDelay(value) {
@@ -65,15 +96,44 @@ QtObject {
   function clearAll() { enabledMasks = []; save() }
   function maskEnabled(mask) { return Settings.maskEnabled(enabledMasks, mask) }
 
-  property FileView settingsFile: FileView {
-    path: root.path
-    watchChanges: true
-    atomicWrites: true
-    printErrors: false
-    onLoaded: root.apply(text())
-    onLoadFailed: root.apply("")
-    onFileChanged: reload()
+  property Process readProcess: Process {
+    property int startSerial: 0
+    command: []
+    running: false
+    stdout: StdioCollector { id: readStdout; waitForEnd: true }
+    stderr: StdioCollector { id: readStderr; waitForEnd: true }
+
+    onExited: function(exitCode) {
+      if (startSerial !== root.writeSerial) return
+      if (exitCode !== 0) {
+        console.warn("huacnlee.which-key: settings could not be read:",
+          String(readStderr.text || "").trim())
+        root.apply("")
+        root.error = "Settings file could not be read; defaults are active."
+        return
+      }
+      root.apply(readStdout.text)
+    }
   }
 
-  Component.onCompleted: settingsFile.reload()
+  property Process writeProcess: Process {
+    command: []
+    running: false
+    stderr: StdioCollector { id: writeStderr; waitForEnd: true }
+
+    onExited: function(exitCode) {
+      if (exitCode !== 0) {
+        console.warn("huacnlee.which-key: settings could not be saved:",
+          String(writeStderr.text || "").trim())
+        root.error = "Settings could not be saved."
+      }
+      if (root.writePending) {
+        root.writePending = false
+        Qt.callLater(function() { root.startWrite() })
+      }
+    }
+  }
+
+  onSourceDirChanged: reload()
+  Component.onCompleted: reload()
 }
