@@ -210,7 +210,8 @@ Item {
         root.acceptBindingOutput(completedGeneration, bindingStdout.text)
       else if (Model.isCurrentGeneration(root.generation, completedGeneration)
           && root.superHeld && nextGeneration === 0)
-        console.warn("huacnlee.which-key: binding load failed:", bindingStderr.text)
+        console.warn("huacnlee.which-key: binding load failed:",
+          Model.clampMessage(bindingStderr.text))
 
       if (nextGeneration !== 0)
         Qt.callLater(function() { root.startBindingLoad(nextGeneration) })

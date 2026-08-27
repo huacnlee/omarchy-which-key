@@ -36,7 +36,7 @@ chmod --reference="$config" "$temporary"
 mv -f -- "$temporary" "$config"
 
 if [[ -f "$state_file" ]]; then
-  initial_state="$(cat -- "$state_file")"
+  initial_state="$(head -c 64 -- "$state_file")"
   case "$initial_state" in
     absent)
       if [[ ! -s "$config" ]]; then

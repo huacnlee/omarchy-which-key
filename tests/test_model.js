@@ -78,4 +78,9 @@ assert.strictEqual(Model.limitBindings(overflowing).length, Model.MAX_BINDINGS)
 assert.strictEqual(Model.limitBindings([{ key: "A" }]).length, 1)
 assert.strictEqual(Model.limitBindings("not an array").length, 0)
 
+assert.strictEqual(Model.clampMessage("  boom  "), "boom")
+assert.strictEqual(Model.clampMessage(null), "")
+assert.strictEqual(Model.clampMessage("x".repeat(Model.MAX_MESSAGE_CHARS)).length, Model.MAX_MESSAGE_CHARS)
+assert.strictEqual(Model.clampMessage("x".repeat(Model.MAX_MESSAGE_CHARS + 500)).length, Model.MAX_MESSAGE_CHARS)
+
 console.log("model tests passed")

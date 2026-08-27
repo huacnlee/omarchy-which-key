@@ -6,6 +6,7 @@ import Quickshell.Io
 import qs.Commons
 import qs.Ui
 import "components"
+import "WhichKeyModel.js" as Model
 
 BarWidget {
   id: root
@@ -84,7 +85,7 @@ BarWidget {
     stdout: StdioCollector { id: statusOutput; waitForEnd: true }
     stderr: StdioCollector { waitForEnd: true }
     onExited: function(exitCode) {
-      var value = String(statusOutput.text || "").trim()
+      var value = Model.clampMessage(statusOutput.text)
       root.integrationState = exitCode === 0 && /^(enabled|disabled|repair)$/.test(value)
         ? value : "repair"
     }
@@ -96,7 +97,8 @@ BarWidget {
     stderr: StdioCollector { id: actionErrorOutput; waitForEnd: true }
     onExited: function(exitCode) {
       root.actionBusy = false
-      root.actionError = exitCode === 0 ? "" : String(actionErrorOutput.text || "Action failed").trim()
+      root.actionError = exitCode === 0
+        ? "" : (Model.clampMessage(actionErrorOutput.text) || "Action failed")
       root.refreshStatus()
     }
   }

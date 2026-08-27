@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "WhichKeyModel.js" as Model
 import "WhichKeySettings.js" as Settings
 
 QtObject {
@@ -107,7 +108,7 @@ QtObject {
       if (startSerial !== root.writeSerial) return
       if (exitCode !== 0) {
         console.warn("huacnlee.which-key: settings could not be read:",
-          String(readStderr.text || "").trim())
+          Model.clampMessage(readStderr.text))
         root.apply("")
         root.error = "Settings file could not be read; defaults are active."
         return
@@ -124,7 +125,7 @@ QtObject {
     onExited: function(exitCode) {
       if (exitCode !== 0) {
         console.warn("huacnlee.which-key: settings could not be saved:",
-          String(writeStderr.text || "").trim())
+          Model.clampMessage(writeStderr.text))
         root.error = "Settings could not be saved."
       }
       if (root.writePending) {

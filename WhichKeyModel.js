@@ -64,6 +64,16 @@ function isPayloadTooLarge(text) {
   return String(text || "").length > MAX_PAYLOAD_CHARS
 }
 
+// Diagnostics are external text too: a helper's stderr carries whatever the
+// compositor or a failing command printed, so it is clipped before the shell
+// logs or displays it.
+var MAX_MESSAGE_CHARS = 2000
+
+function clampMessage(text) {
+  var value = String(text || "").trim()
+  return value.length > MAX_MESSAGE_CHARS ? value.substring(0, MAX_MESSAGE_CHARS) : value
+}
+
 function limitBindings(bindings) {
   var source = Array.isArray(bindings) ? bindings : []
   return source.length > MAX_BINDINGS ? source.slice(0, MAX_BINDINGS) : source

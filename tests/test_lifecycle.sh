@@ -91,4 +91,25 @@ printf '%s\n' '-- omarchy-which-key:begin' >"$HOME/.config/hypr/bindings.lua"
 ln -s "$test_root/plugin/scripts/which-key-trigger" "$HOME/.local/bin/which-key-trigger"
 test "$("$test_root/plugin/scripts/integration-status")" = "repair"
 
+# A compositor that reports its config errors at length must not hand the shell
+# an unbounded message to keep and display.
+rm -f "$HOME/.config/hypr/bindings.lua"
+printf '%s\n' '-- existing' >"$HOME/.config/hypr/bindings.lua"
+rm -f "$HOME/.local/bin/which-key-trigger"
+cat >"$test_root/bin/hyprctl" <<'SH'
+#!/bin/bash
+if [[ ${1:-} == getoption ]]; then printf '%s\n' '{"str":""}'; exit 0; fi
+if [[ ${1:-} == configerrors ]]; then head -c 200000 /dev/zero | tr '\0' 'e'; exit 0; fi
+exit 0
+SH
+chmod +x "$test_root/bin/hyprctl"
+enable_status=0
+"$test_root/plugin/scripts/enable-integration" 2>"$test_root/enable.err" || enable_status=$?
+test "$enable_status" -eq 65
+test "$(wc -c <"$test_root/enable.err")" -le 4097
+OMARCHY_WHICH_KEY_MAX_ERROR_BYTES=100 "$test_root/plugin/scripts/enable-integration" \
+  2>"$test_root/enable.err" || true
+test "$(wc -c <"$test_root/enable.err")" -le 101
+"$test_root/plugin/scripts/disable-integration" >/dev/null
+
 printf 'lifecycle tests passed\n'

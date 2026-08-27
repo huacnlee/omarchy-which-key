@@ -161,6 +161,15 @@ test -x scripts/which-key-settings
 grep -Fq 'iflag=nofollow,nonblock,count_bytes' scripts/which-key-settings
 grep -Fq 'OMARCHY_WHICH_KEY_SETTINGS_MAX_BYTES' scripts/which-key-settings
 grep -Fq 'scripts/which-key-settings' WhichKeyConfig.qml
+
+# Diagnostics are external text as well, so nothing the shell logs or shows is
+# taken from a collector at whatever length it happens to arrive.
+grep -Fq 'Model.clampMessage(bindingStderr.text)' WhichKey.qml
+grep -Fq 'Model.clampMessage(readStderr.text)' WhichKeyConfig.qml
+grep -Fq 'Model.clampMessage(writeStderr.text)' WhichKeyConfig.qml
+grep -Fq 'Model.clampMessage(statusOutput.text)' widget.qml
+grep -Fq 'Model.clampMessage(actionErrorOutput.text)' widget.qml
+grep -Fq 'OMARCHY_WHICH_KEY_MAX_ERROR_BYTES' scripts/enable-integration
 grep -Fq 'sourceDir: root.sourceDir' WhichKey.qml
 grep -Fq 'sourceDir: root.sourceDir' widget.qml
 grep -Fq 'config.reload()' WhichKey.qml

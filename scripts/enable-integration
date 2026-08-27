@@ -17,6 +17,11 @@ fi
 ln -sfn -- "$target" "$link"
 "$repo_root/scripts/install-bindings"
 "$hyprctl_command" reload
-errors="$($hyprctl_command configerrors)"
+# The compositor decides how much it prints here and this text ends up in the
+# shell's settings panel, so the capture stops at a fixed ceiling.
+errors="$(
+  set +o pipefail
+  "$hyprctl_command" configerrors | head -c "${OMARCHY_WHICH_KEY_MAX_ERROR_BYTES:-4096}"
+)"
 [[ -z "$errors" ]] || { printf '%s\n' "$errors" >&2; exit 65; }
 printf 'enabled\n'
