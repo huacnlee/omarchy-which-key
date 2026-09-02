@@ -4,6 +4,7 @@ PLUGIN_DIR ?= $(HOME)/.config/omarchy/plugins/huacnlee.which-key
 
 test:
 	bash tests/test_install.sh
+	bash tests/test_install_compound_modmap.sh
 	bash tests/test_bindings.sh
 	node tests/test_model.js
 	node tests/test_settings.js
