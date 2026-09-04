@@ -55,11 +55,16 @@ awk '
     next
   }
   match($0, /^  ([A-Za-z0-9_]+):$/, p) { key = p[1]; next }
-  match($0, /^[[:space:]]+real:[[:space:]]+(Shift|Control|Mod1|Mod4)$/, p) && code[key] {
-    role = p[1] == "Shift" ? "shift" : (p[1] == "Control" ? "ctrl" : (p[1] == "Mod1" ? "alt" : "super"))
-    bit = p[1] == "Shift" ? 1 : (p[1] == "Control" ? 4 : (p[1] == "Mod1" ? 8 : 64))
-    count[role]++
-    print code[key], role "_" count[role], bit
+  match($0, /^[[:space:]]+real:[[:space:]]+(.+)$/, p) && code[key] {
+    n = split(p[1], mods, /[[:space:]]*\+[[:space:]]*/)
+    for (i = 1; i <= n; i++) {
+      m = mods[i]
+      if (m != "Shift" && m != "Control" && m != "Mod1" && m != "Mod4") continue
+      role = m == "Shift" ? "shift" : (m == "Control" ? "ctrl" : (m == "Mod1" ? "alt" : "super"))
+      bit = m == "Shift" ? 1 : (m == "Control" ? 4 : (m == "Mod1" ? 8 : 64))
+      count[role]++
+      print code[key], role "_" count[role], bit
+    }
   }
 ' "$keymap" "$modmaps" >"$entries"
 grep -q ' super_' "$entries" || { printf 'install-bindings: active Super modifier has no XKB keys\n' >&2; exit 65; }
