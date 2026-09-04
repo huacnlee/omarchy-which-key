@@ -12,7 +12,9 @@ executes them.
 
 The interaction and information hierarchy follow `which-key.nvim`: delayed
 reveal, concise key-to-description rows, live refinement as the key prefix
-changes, and immediate dismissal when the prefix ends or an action is taken.
+changes, and immediate dismissal when the prefix ends. The held leader is the
+whole prefix, so running an action does not end it: the popover stays up for
+the next action until Super is released.
 The visual reference is LazyVim's classic which-key popover rather than a
 full-screen searchable shortcut table.
 
@@ -38,9 +40,10 @@ full-screen searchable shortcut table.
 - Pressing either physical Super key starts a 200 ms reveal timer.
 - If Super is still held when the timer expires, the popover appears.
 - Releasing the final held Super key dismisses the popover immediately.
-- Releasing Super after an action dismisses the popover. If Hyprland exposes a
-  passive compositor event for the action, the plugin may close earlier from
-  that event, but it never binds or intercepts the action key to obtain it.
+- Running an action leaves the popover open. Holding Super is a session, not a
+  single-shot prefix, so consecutive shortcuts stay guided and only releasing
+  Super closes the popover. The plugin observes no action key at all, which
+  also keeps a shortcut press from spawning any process.
 - Adding or removing `Shift`, `Ctrl`, or `Alt` while Super remains held updates
   the list for the current modifier chord.
 - A press followed by release before the reveal delay cancels the timer and

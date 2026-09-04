@@ -38,6 +38,9 @@ Press and hold **Super** — the **Command (⌘)** key on an Apple keyboard or t
 Super and add Shift, Ctrl, or Alt to see shortcuts for that exact key
 combination. Release Super to close the guide.
 
+Running a shortcut leaves the guide open, so one held Super can drive several
+shortcuts in a row. Only releasing Super closes it.
+
 By default, the guide appears after Super is held for 200 ms, so a quick tap
 does not open it. You can change this delay and choose which modifier
 combinations are shown from the Which Key bar widget settings. The guide shows

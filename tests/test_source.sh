@@ -123,9 +123,13 @@ if grep -Fq 'which-key-trigger press' README.md; then
   exit 1
 fi
 grep -Fq 'function state(sequence: int, mask: int)' WhichKey.qml
-grep -Fq 'function dismiss(sequence: int)' WhichKey.qml
-grep -Fq '!consumed' WhichKey.qml
 grep -Fq 'nextSequence <= lastEventSequence' WhichKey.qml
+# Running a shortcut must not close the guide: only releasing Super does, so a
+# held Super can drive one shortcut after another.
+if grep -Fq 'dismiss' WhichKey.qml; then
+  printf 'FAIL: a shortcut key must leave the guide open for the next one\n' >&2
+  exit 1
+fi
 grep -Fq 'viewModel.rows.slice(0, 20)' components/WhichKeyCard.qml
 grep -Fq 'readonly property int pad: Style.space(10)' components/WhichKeyCard.qml
 grep -Fq 'readonly property int rowGap: Style.space(4)' components/WhichKeyCard.qml
