@@ -24,7 +24,6 @@ Item {
   property bool revealDue: false
   property int pendingLoadGeneration: 0
   property int lastEventSequence: 0
-  property bool consumed: false
 
   WhichKeyConfig { id: config; sourceDir: root.sourceDir }
   Connections {
@@ -63,7 +62,6 @@ Item {
     if (wasHeld) return
 
     generation += 1
-    consumed = false
     opened = false
     bindingsReady = false
     revealDue = false
@@ -93,7 +91,6 @@ Item {
     pendingLoadGeneration = 0
     if (bindingProcess.running) bindingProcess.running = false
     close()
-    consumed = false
   }
 
   function setModifiers(mask) {
@@ -117,24 +114,12 @@ Item {
     setModifiers(nextMask)
   }
 
-  function acceptDismiss(sequence) {
-    var nextSequence = Number(sequence)
-    if (!isFinite(nextSequence) || nextSequence <= lastEventSequence) return
-    lastEventSequence = nextSequence
-    if (!superHeld) return
-    consumed = true
-    generation += 1
-    revealTimer.stop()
-    revealDue = false
-    close()
-  }
-
   function rebuildModel() {
     viewModel = Model.buildRows(bindings, modifierMask)
   }
 
   function maybeReveal() {
-    opened = revealDue && superHeld && !consumed && config.maskEnabled(modifierMask) && bindingsReady
+    opened = revealDue && superHeld && config.maskEnabled(modifierMask) && bindingsReady
       && viewModel && viewModel.rows && viewModel.rows.length > 0
   }
 
@@ -221,12 +206,10 @@ Item {
   IpcHandler {
     target: "huacnlee.which-key"
 
+    // Only modifier changes arrive here. Running a shortcut leaves the guide
+    // up so a held Super can drive several shortcuts before it closes.
     function state(sequence: int, mask: int): void {
       root.acceptState(sequence, mask)
-    }
-
-    function dismiss(sequence: int): void {
-      root.acceptDismiss(sequence)
     }
   }
 
