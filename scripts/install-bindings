@@ -55,19 +55,25 @@ awk '
     next
   }
   match($0, /^  ([A-Za-z0-9_]+):$/, p) { key = p[1]; next }
-  match($0, /^[[:space:]]+real:[[:space:]]+(.+)$/, p) && code[key] {
-    n = split(p[1], mods, /[[:space:]]*\+[[:space:]]*/)
+  match($0, /^[[:space:]]+real:[[:space:]]+([A-Za-z0-9 +]+)$/, p) && code[key] {
+    n = split(p[1], parts, /[[:space:]]*\+[[:space:]]*/)
+    role = ""
+    bits = 0
     for (i = 1; i <= n; i++) {
-      m = mods[i]
-      if (m != "Shift" && m != "Control" && m != "Mod1" && m != "Mod4") continue
-      role = m == "Shift" ? "shift" : (m == "Control" ? "ctrl" : (m == "Mod1" ? "alt" : "super"))
-      bit = m == "Shift" ? 1 : (m == "Control" ? 4 : (m == "Mod1" ? 8 : 64))
-      count[role]++
-      print code[key], role "_" count[role], bit
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", parts[i])
+      real = parts[i]
+      if (real != "Shift" && real != "Control" && real != "Mod1" && real != "Mod4") continue
+      if (role == "") role = real == "Shift" ? "shift" : (real == "Control" ? "ctrl" : (real == "Mod1" ? "alt" : "super"))
+      bit = real == "Shift" ? 1 : (real == "Control" ? 4 : (real == "Mod1" ? 8 : 64))
+      bits = or(bits, bit)
     }
+    if (!bits) next
+    # A key has one held state, even when it contributes several modifiers.
+    count[role]++
+    print code[key], role "_" count[role], bits
   }
 ' "$keymap" "$modmaps" >"$entries"
-grep -q ' super_' "$entries" || { printf 'install-bindings: active Super modifier has no XKB keys\n' >&2; exit 65; }
+awk 'and($3, 64) { found = 1 } END { exit !found }' "$entries" || { printf 'install-bindings: active Super modifier has no XKB keys\n' >&2; exit 65; }
 
 awk -v begin="$begin_marker" -v end="$end_marker" '
   $0 == begin { in_owned_block = 1; next }
@@ -89,17 +95,9 @@ awk -v begin="$begin_marker" -v end="$end_marker" '
   printf '%s\n' 'local omarchy_which_key_held = {}'
   printf '%s\n' 'hl.on("input.keyboard.key", function(keycode, time, state)'
   printf '%s\n' '  local key = omarchy_which_key_codes[keycode]'
-  printf '%s\n' '  if not key then'
-  printf '%s\n' '    if state == 1 then'
-  printf '%s\n' '      for name, _ in pairs(omarchy_which_key_held) do'
-  printf '%s\n' '        if omarchy_which_key_bits[name] == 64 then'
-  printf '%s\n' '          hl.exec_cmd("which-key-trigger dismiss " .. tostring(time))'
-  printf '%s\n' '          break'
-  printf '%s\n' '        end'
-  printf '%s\n' '      end'
-  printf '%s\n' '    end'
-  printf '%s\n' '    return'
-  printf '%s\n' '  end'
+  printf '%s\n' '  -- Only a modifier change moves the guide. A shortcut key is ignored so'
+  printf '%s\n' '  -- that one held Super can run several shortcuts in a row.'
+  printf '%s\n' '  if not key then return end'
   printf '%s\n' '  local pressed = state == 1'
   printf '%s\n' '  omarchy_which_key_held[key.name] = pressed or nil'
   printf '%s\n' '  local mask = 0'
