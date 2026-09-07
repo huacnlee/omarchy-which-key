@@ -33,7 +33,7 @@ cat >"$fake_xkbcli" <<'SH'
 #!/bin/bash
 test "${1:-}" = compile-keymap
 if [[ "$*" == *'--modmaps'* ]]; then
-cat <<'MODMAPS'
+cat <<MODMAPS
 Keys modifier maps:
   LFSH:
     real:    Shift + Lock
@@ -48,8 +48,14 @@ Keys modifier maps:
     real:    Mod1
     virtual: Alt
   LWIN:
-    real:    Mod4
+    real:    ${OMARCHY_TEST_SUPER_MODMAP:-Mod4}
     virtual: Super
+  COMP:
+    real:    Shift + Lock + Control + Mod4
+    virtual: Super
+  CAPS:
+    real:    Lock
+    virtual: 0
 MODMAPS
 exit 0
 fi
@@ -60,6 +66,8 @@ xkb_keycodes "evdev" {
   <LCTL> = 37;
   <LALT> = 64;
   <LWIN> = 133;
+  <COMP> = 203;
+  <CAPS> = 66;
 };
 KEYMAP
 SH
@@ -95,6 +103,55 @@ if grep -Fq 'name = "lock' "$config"; then
 fi
 
 OMARCHY_TEST_CONFIG="$config" \
-  lua -e 'assert(loadfile(os.getenv("OMARCHY_TEST_CONFIG")))'
+  lua - <<'LUA'
+local callback, commands = nil, {}
+o = { bind = function() end }
+hl = {
+  on = function(_, fn) callback = fn end,
+  exec_cmd = function(command) commands[#commands + 1] = command end,
+}
+dofile(os.getenv("OMARCHY_TEST_CONFIG"))
+local function key(code, state, mask)
+  local time = #commands + 1
+  callback(code, time, state)
+  local expected = "which-key-trigger state " .. time .. " " .. mask
+  assert(commands[time] == expected,
+    "expected " .. expected .. ", got " .. tostring(commands[time]))
+end
+key(133, 1, 64)
+key(50, 1, 65) -- Shift + Lock ignores Lock.
+key(62, 1, 65)
+key(50, 0, 65) -- The other Shift is still held.
+key(62, 0, 64)
+key(203, 1, 69) -- One key contributes Shift, Control and Super.
+key(37, 1, 69)
+key(203, 0, 68) -- Separate Control and Super keys remain held.
+key(133, 0, 4)
+key(37, 0, 0)
+local count = #commands
+callback(66, 11, 1)
+callback(66, 12, 0)
+assert(#commands == count, "Lock-only keys must be ignored")
+LUA
+
+# Super may exist only as part of a compound map; installation must accept it.
+OMARCHY_TEST_SUPER_MODMAP=Lock \
+OMARCHY_WHICH_KEY_XKBCLI="$fake_xkbcli" \
+OMARCHY_WHICH_KEY_HYPRCTL="$fake_hyprctl" \
+OMARCHY_WHICH_KEY_HYPR_CONFIG="$config" "$repo_root/scripts/install-bindings"
+
+OMARCHY_TEST_CONFIG="$config" lua - <<'LUA'
+local callback, command
+o = { bind = function() end }
+hl = {
+  on = function(_, fn) callback = fn end,
+  exec_cmd = function(value) command = value end,
+}
+dofile(os.getenv("OMARCHY_TEST_CONFIG"))
+callback(203, 1, 1)
+assert(command == "which-key-trigger state 1 69")
+callback(203, 2, 0)
+assert(command == "which-key-trigger state 2 0")
+LUA
 
 printf 'test_install_compound_modmap: ok\n'

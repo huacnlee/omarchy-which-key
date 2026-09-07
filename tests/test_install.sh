@@ -49,7 +49,7 @@ if [[ "$*" == *'--modmaps'* ]]; then
 cat <<'MODMAPS'
 Keys modifier maps:
   LFSH:
-    real:    Shift
+    real:    Shift + Lock
   RTSH:
     real:    Shift
   LCTL:

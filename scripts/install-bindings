@@ -57,19 +57,23 @@ awk '
   match($0, /^  ([A-Za-z0-9_]+):$/, p) { key = p[1]; next }
   match($0, /^[[:space:]]+real:[[:space:]]+([A-Za-z0-9 +]+)$/, p) && code[key] {
     n = split(p[1], parts, /[[:space:]]*\+[[:space:]]*/)
-    real = ""
+    role = ""
+    bits = 0
     for (i = 1; i <= n; i++) {
       gsub(/^[[:space:]]+|[[:space:]]+$/, "", parts[i])
-      if (parts[i] == "Shift" || parts[i] == "Control" || parts[i] == "Mod1" || parts[i] == "Mod4") { real = parts[i]; break }
+      real = parts[i]
+      if (real != "Shift" && real != "Control" && real != "Mod1" && real != "Mod4") continue
+      if (role == "") role = real == "Shift" ? "shift" : (real == "Control" ? "ctrl" : (real == "Mod1" ? "alt" : "super"))
+      bit = real == "Shift" ? 1 : (real == "Control" ? 4 : (real == "Mod1" ? 8 : 64))
+      bits = or(bits, bit)
     }
-    if (real == "") next
-    role = real == "Shift" ? "shift" : (real == "Control" ? "ctrl" : (real == "Mod1" ? "alt" : "super"))
-    bit = real == "Shift" ? 1 : (real == "Control" ? 4 : (real == "Mod1" ? 8 : 64))
+    if (!bits) next
+    # A key has one held state, even when it contributes several modifiers.
     count[role]++
-    print code[key], role "_" count[role], bit
+    print code[key], role "_" count[role], bits
   }
 ' "$keymap" "$modmaps" >"$entries"
-grep -q ' super_' "$entries" || { printf 'install-bindings: active Super modifier has no XKB keys\n' >&2; exit 65; }
+awk 'and($3, 64) { found = 1 } END { exit !found }' "$entries" || { printf 'install-bindings: active Super modifier has no XKB keys\n' >&2; exit 65; }
 
 awk -v begin="$begin_marker" -v end="$end_marker" '
   $0 == begin { in_owned_block = 1; next }
