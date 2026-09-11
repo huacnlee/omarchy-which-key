@@ -70,3 +70,15 @@ omarchy plugin list --json | jq '.[] | select(.id == "huacnlee.which-key")'
 Bindings without a Hyprland description are intentionally omitted. If the
 keyboard layout or XKB options change, turn **Enabled** off and on again in the
 Which Key settings.
+
+## More Omarchy projects
+
+- [Omamail](https://github.com/huacnlee/omamail) — A mail plugin for Omarchy
+  with Gmail, HEY, and IMAP support. Read and manage email right from the
+  desktop.
+- [Omasend](https://github.com/huacnlee/omasend) — A native LocalSend client
+  for Omarchy. Share files, folders, and text over your local network. Built
+  with GPUI Kit for Linux, macOS, and Windows.
+- [omarchy-mihoro](https://github.com/huacnlee/omarchy-mihoro) — An Omarchy bar
+  panel for Mihoro. Monitor your proxy, switch between Rule, Global, and Direct
+  modes, and manage subscriptions.
