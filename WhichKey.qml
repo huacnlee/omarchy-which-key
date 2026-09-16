@@ -31,8 +31,19 @@ Item {
     function onEnabledMasksChanged() { root.maybeReveal() }
   }
 
-  readonly property string sourceDir: manifest && manifest.__sourceDir
-    ? String(manifest.__sourceDir) : ""
+  // Resolve this component's own directory rather than reading
+  // manifest.__sourceDir: Omarchy redacts internal manifest fields for
+  // third-party plugins (shell.qml: publicPluginManifest drops __sourceDir,
+  // __isFirstParty, __hostCapabilities) before handing the manifest to plugin
+  // QML, so that field is always absent here and the bindings load below would
+  // never start. widget.qml resolves its directory the same way.
+  readonly property string sourceDir: localPath(Qt.resolvedUrl("."))
+
+  function localPath(url) {
+    var value = String(url || "")
+    if (value.indexOf("file://") === 0) value = value.substring(7)
+    try { return decodeURIComponent(value) } catch (error) { return value }
+  }
   readonly property bool superHeld: heldSuperKeys.super_l === true
     || heldSuperKeys.super_r === true
   readonly property string focusedScreenName: Hyprland.focusedMonitor

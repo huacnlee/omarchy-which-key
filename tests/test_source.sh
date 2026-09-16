@@ -176,6 +176,18 @@ grep -Fq 'Model.clampMessage(actionErrorOutput.text)' widget.qml
 grep -Fq 'OMARCHY_WHICH_KEY_MAX_ERROR_BYTES' scripts/enable-integration
 grep -Fq 'sourceDir: root.sourceDir' WhichKey.qml
 grep -Fq 'sourceDir: root.sourceDir' widget.qml
+
+# Omarchy redacts internal manifest fields for third-party plugins before
+# handing the manifest to plugin QML, so __sourceDir is always absent at
+# runtime. The overlay must resolve its own directory, as widget.qml does, or
+# it never starts the bindings load and the guide never appears. Comment lines
+# may name the field; executable code may not reference it.
+if grep -v '^[[:space:]]*//' WhichKey.qml | grep -Fq '__sourceDir'; then
+  printf 'FAIL: overlay must not depend on the internal manifest source field\n' >&2
+  exit 1
+fi
+grep -Fq 'readonly property string sourceDir: localPath(Qt.resolvedUrl("."))' WhichKey.qml
+grep -Fq 'function localPath(url) {' WhichKey.qml
 grep -Fq 'config.reload()' WhichKey.qml
 grep -Fq 'config.reload()' widget.qml
 if grep -Fq 'FileView' WhichKeyConfig.qml; then
