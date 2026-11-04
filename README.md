@@ -6,6 +6,8 @@ compact guide at the bottom right of the focused display when you hold Super.
 
 <img width="250" alt="Omarchy Which-Key" src="preview.png" />
 
+**If this helps you, please [sponsor me](https://github.com/sponsors/huacnlee).**
+
 ## Requirements
 
 Omarchy 4 with its Quickshell desktop and Hyprland Lua configuration support.
