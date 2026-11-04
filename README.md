@@ -71,14 +71,10 @@ Bindings without a Hyprland description are intentionally omitted. If the
 keyboard layout or XKB options change, turn **Enabled** off and on again in the
 Which Key settings.
 
-## More Omarchy projects
+## More projects
 
-- [Omamail](https://github.com/huacnlee/omamail) — A mail plugin for Omarchy
-  with Gmail, HEY, and IMAP support. Read and manage email right from the
-  desktop.
-- [Omasend](https://github.com/huacnlee/omasend) — A native LocalSend client
-  for Omarchy. Share files, folders, and text over your local network. Built
-  with GPUI Kit for Linux, macOS, and Windows.
-- [omarchy-mihoro](https://github.com/huacnlee/omarchy-mihoro) — An Omarchy bar
-  panel for Mihoro. Monitor your proxy, switch between Rule, Global, and Direct
-  modes, and manage subscriptions.
+- [Disktree](https://huacnlee.github.io/disktree/) — A native disk-space explorer for macOS and Linux. See what fills your disk as a nested treemap, and review every path before removing anything.
+- [Omasend](https://huacnlee.github.io/omasend/) — A native LocalSend client. Share files, folders, screenshots, and text over your local network, with no account or cloud upload.
+- [Omamail](https://huacnlee.github.io/omamail/) — A native email and calendar app with multiple accounts and keyboard navigation. Runs as an Omarchy plugin or a standalone desktop app.
+- [noop](https://huacnlee.github.io/noop/) — Your own AI team. Claude Code and Codex agents on your own computers do the daily work and only ask when something really needs you.
+- [omarchy-mihoro](https://github.com/huacnlee/omarchy-mihoro) — An Omarchy bar panel for Mihoro. Monitor your proxy, switch between Rule, Global, and Direct modes, and manage subscriptions.
