@@ -73,6 +73,19 @@ Bindings without a Hyprland description are intentionally omitted. If the
 keyboard layout or XKB options change, turn **Enabled** off and on again in the
 Which Key settings.
 
+Neither check above reveals whether the keyboard integration is installed:
+`omarchy plugin list` reports whether the widget is in the bar, so it still says
+`"enabled": true` when integration has never been turned on, and
+`hyprctl configerrors` is empty either way. Check integration directly:
+
+```bash
+~/.config/omarchy/plugins/huacnlee.which-key/scripts/integration-status
+```
+
+`disabled` means **Enabled** has not been turned on in the Which Key bar widget
+settings yet, so holding Super never reaches the plugin. `repair` means only
+part of it was installed; turn **Enabled** off and on again.
+
 ## More projects
 
 - [Disktree](https://huacnlee.github.io/disktree/) — A native disk-space explorer for macOS and Linux. See what fills your disk as a nested treemap, and review every path before removing anything.
